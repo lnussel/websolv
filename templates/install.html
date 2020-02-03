@@ -1,0 +1,78 @@
+{% extends "layout.html" %}
+{% block title %}{{ super() }}Install Package on {{ context }}{% endblock %}
+{% block content %}
+{{ super() }}
+        <h1>Install Package on {{ context }}</h1>
+        <form class="border border-light p-5" action="{{ url_for('install', context=context) }}" method="get">
+          <div class="form-group">
+          {% if packages %}
+            {% for p in packages %}
+              {% if p %}
+                <input type="text" name="package" value="{{ p }}"/><br/>
+              {% endif %}
+            {% endfor %}
+          {% endif %}
+          <input type="text" name="package" placeholder="package name"/><br/>
+          </div>
+          <div class="form-group">
+            <input type="checkbox" name="norecommends" id="norecommends" value="norecommends" {{ 'checked' if norecommends }}/>
+            <label labelfor="norecommends">ignore recommended</label><br/>
+          </div>
+          <input type="submit" class="btn btn-primary" value="Solve!"/>
+          <p/>
+        </form>
+        <div id="container">
+        {% if result and 'newsolvables' in result %}
+        {% if result['choices'] %}
+        Choices taken:<br/>
+          <ul>
+            {% for c in result['choices'] %}
+              <li><a href="{{ url_for('depinfo', context=context, relation=c) }}">{{ c }}</a></li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+        </div>
+        <div id="container">
+        <table id='packagelist' class="table table-striped table-autosort table-autofilter">
+            <thead>
+                <tr>
+                    <th>Package</th>
+                    <th class="table-sortable:numeric">Size</th>
+                    <th class="table-sortable:alphanumeric table-filterable">Reason</th>
+                    <th>Rule</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                  <td>TOTAL</td>
+                  <td>{{ result['size'] }}</td>
+                  <td></td>
+                  <td></td>
+                </tr>
+            {% for p in result['newsolvables'] %}
+              <tr id="{{ p[0].name }}">
+                <td><a href="{{ url_for('info', context=context, package = p[0]) }}">{{ p[0].name }}</a></td>
+                <td class="package-install-size">{{ p[0]|solvable_size }}</td>
+                <td>{{ p[1] }}</td>
+                <td>
+                  {% for rule in p[2] %}
+                    {% if rule|length == 4 and rule[1] == 'PKG_REQUIRES' %}
+                      <a href="#{{ rule[0].name }}">{{ rule[0] }}</a> {{ rule[1][4:]|lower }} <a href="{{ url_for('depinfo', context=context, relation=rule[2]) }}">{{ rule[2] }}</a>
+                    {% elif p[1] == 'WEAKDEP' %}
+                      <a href="#{{ rule[0] }}">{{ rule[0] }}</a> {{ rule[1]|lower }} <a href="{{ url_for('depinfo', context=context, relation=rule[2]) }}">{{ rule[2] }}</a>
+                    {% else %}
+                      {% for i in rule %}
+                        {% if i %}
+                          {{ i }}
+                        {% endif %}
+                      {% endfor %}
+                    {% endif %}
+                    <br/>
+                  {% endfor %}
+                </td>
+              </tr>
+            {% endfor %}
+        </table>
+        </div>
+        {% endif %}
+{% endblock %}

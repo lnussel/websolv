@@ -1,0 +1,7 @@
+#!/bin/sh -xe
+cd deptool
+for ctx in */repos; do
+  cachedir="${ctx%/*}/.cache/zypp"
+  mkdir -p "$cachedir"
+  sudo zypper -D "$ctx" -C "$cachedir" ref
+done

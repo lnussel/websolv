@@ -1,0 +1,7 @@
+.sort-arrows:before {
+  content: "\f0dc";
+}
+
+.package-install-size {
+  text-align: right;
+}

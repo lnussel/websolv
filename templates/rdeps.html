@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+{% block title %}{{ super() }}Package {{ context}}/{{ package }}{% endblock %}
+{% block content %}
+{{ super() }}
+        <h1>Reverse deps for {{ package }}</h1>
+        {% for kind in result.keys() %}
+        <ul>
+          <li>{{ kind }}
+            {% for symbol in result[kind].keys() %}
+            <ul>
+              <li>{{ symbol }}
+                <ul>
+                  {% for fqpn in result[kind][symbol] %}
+                  <li><a href="{{ url_for('info', context=context, package=fqpn) }}">{{ fqpn }}</a>
+</li>
+                  {% endfor %}
+                </ul>
+              </li>
+            </ul>
+            {% endfor %}
+          </li>
+        </ul>
+        {% endfor %}
+{% endblock %}

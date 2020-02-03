@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+{% block title %}{{ super() }}Package {{ context}}/{{ package }}{% endblock %}
+{% block content %}
+{{ super() }}
+        <h1>Displaying {{ context}}/{{ package }}</h1>
+        {% for p in result.keys() %}
+        <h2>{{ p }}</h2>
+        <a href="{{ url_for('rdeps', context=context, package=p) }}" method="get" class="btn btn-primary">View reverse deps</a>
+          <table class="table table-striped">
+              <thead>
+                  <tr>
+                      <th>Attribute</th>
+                      <th>Value</th>
+                  </tr>
+              </thead>
+              <tbody>
+              {% for k in result[p].keys() %}
+                <tr>
+                  <td>{{ k }}</td>
+                  {% if result[p][k] is iterable and result[p][k] is not string %}
+                    <td>
+                      {% for dep in result[p][k] %}
+                        {% if k == 'REQUIRES' or k == 'PROVIDES' or k == 'RECOMMENDS' or k == 'SUGGESTS' %}
+                          <a href="{{ url_for('depinfo', context=context, relation=dep) }}">{{ dep }}<br/>
+                        {% else %}
+                          {{ dep }}<br/>
+                        {% endif %}
+                      {% endfor %}
+                    </td>
+                  {% else %}
+                    <td>{{ result[p][k] }}</td>
+                  {% endif %}
+                </tr>
+              {% endfor %}
+          </table>
+        {% endfor %}
+{% endblock %}

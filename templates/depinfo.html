@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+{% block title %}{{ super() }}Relation {{ context}}/{{ relation }}{% endblock %}
+{% block content %}
+{{ super() }}
+        <h1>Relation {{ relation }}</h1>
+        {% for kind in result.keys() %}
+        <ul>
+          <li>{{ kind }}
+            <ul>
+            {% for s in result[kind] %}
+              <li><a href="{{ url_for('info', context=context, package=s) }}">{{ s }}</a></li>
+            {% endfor %}
+            </ul>
+          </li>
+        </ul>
+        {% endfor %}
+{% endblock %}
