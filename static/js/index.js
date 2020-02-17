@@ -132,6 +132,17 @@ function start() {
         search();
       }
     });
+
+    $('#page-function-tabs a[data-toggle="pill"]').on('shown.bs.tab', function (e) {
+      window.location.replace(e.target['href']);
+    });
+
+    var l = window.location.hash;
+    if (l == '#search' || l == '#solve' || l == '#settings') {
+      $(l + '-tab').tab('show');
+    } else {
+      $('#solve-tab').tab('show');
+    }
   });
 }
 
