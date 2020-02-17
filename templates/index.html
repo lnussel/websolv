@@ -45,70 +45,71 @@
     </div>
   </div>
 
-	<div class="row">
-	  <div class="col-3">
-	    <div class="nav flex-column nav-pills" id="page-function-tabs" role="tablist" aria-orientation="vertical">
-	      <a class="nav-link" id="solve-tab" data-toggle="pill" href="#solve" role="tab" aria-controls="home" aria-selected="true">Solve</a>
-	      <a class="nav-link" id="search-tab" data-toggle="pill" href="#search" role="tab" aria-controls="profile" aria-selected="false">Search</a>
-	      <a class="nav-link" id="settings-tab" data-toggle="pill" href="#settings" role="tab" aria-controls="settings" aria-selected="false">Settings</a>
-	    </div>
-	  </div>
-	  <div class="col-9">
-	    <div class="tab-content" id="tabContent">
-	      <div class="tab-pane fade show active" id="solve" role="tabpanel" aria-labelledby="solve-tab">
-		<div class="card">
-		  <div class="card-body">
-		    <form id="solveform">
-		      <div class="form-group form-check">
-			<input type="checkbox" class="form-check-input" id="solve_job_norecommends">
-			<label class="form-check-label" for="solve_job_norecommends">no recomends</label>
-		      </div>
-		      <div class="input-group mb-3 solve_job_group job_template">
-			<div class="input-group-prepend">
-			  <button class="btn btn-outline-secondary dropdown-toggle solve_job_button" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Install</button>
-			  <div class="dropdown-menu">
-			    <a class="dropdown-item" href="#">Install</a>
-			    <a class="dropdown-item" href="#">Lock</a>
-			  </div>
-			</div>
-			<input type="text" class="form-control solve_job_text" aria-label="Text input with dropdown button">
-			<div class="input-group-append">
-			  <button type="button" class="btn btn-outline-dark solve_job_trash_button"><i class="fa fa-trash"></i></button>
-			</div>
-		      </div>
+  <div class="row">
+    <div class="col-3">
+      <div class="nav flex-column nav-pills" id="page-function-tabs" role="tablist" aria-orientation="vertical">
+        <a class="nav-link" id="solve-tab" data-toggle="pill" href="#solve" role="tab" aria-controls="home" aria-selected="true">Solve</a>
+        <a class="nav-link" id="search-tab" data-toggle="pill" href="#search" role="tab" aria-controls="profile" aria-selected="false">Search</a>
+        <a class="nav-link" id="settings-tab" data-toggle="pill" href="#settings" role="tab" aria-controls="settings" aria-selected="false">Settings</a>
+      </div>
+    </div>
 
-		      <button type="button" class="btn btn-secondary" id="btn-add"><i class="fa fa-plus-square"></i></button>
-		      <button type="button" class="btn btn-success" id="btn-solve">Solve!</button>
-		    </form>
-		  </div>
-		</div>
-		<div class="list-group" id="solv_problems" style="display:none;">
-		</div>
-		<div class="spinner-border text-secondary" id="solv_spinner" role="status" style="display:none;"><span class="sr-only">Solving...</span></div>
-		<div class="card" id="solv_result" style="display:none;">
-		  <div class="card" id="solv_choices" style="display:none;">
-		    <div class="dropdown">
-		      <button class="btn btn-sm btn-outline-secondary dropdown-toggle" id="solv_choices_button" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Choices</button>
-		      <div class="dropdown-menu" id="solv_choices_menu" aria-labelledby="solv_choices_button">
-		      </div>
-		    </div>
-		  </div>
-		  <div class="card-body">
-		    <table id='packagelist' class="table table-striped table-autosort table-autofilter table-hover">
-		      <thead>
-			<tr>
-			  <th>Package</th>
-			  <th class="table-sortable:numeric">Size</th>
-			  <th class="table-sortable:alphanumeric table-filterable">Reason</th>
-			  <th>Rule</th>
-			</tr>
-		      </thead>
-		      <tbody>
-		      </tbody>
-		    </table>
-		  </div>
-		</div>
-	      </div>
+    <div class="col-9">
+      <div class="tab-content" id="tabContent">
+        <div class="tab-pane fade show active" id="solve" role="tabpanel" aria-labelledby="solve-tab">
+          <div class="card">
+            <div class="card-body">
+              <form id="solveform">
+                <div class="form-group form-check">
+                  <input type="checkbox" class="form-check-input" id="solve_job_norecommends">
+                  <label class="form-check-label" for="solve_job_norecommends">no recomends</label>
+                </div>
+                <div class="input-group mb-3 solve_job_group job_template">
+                  <div class="input-group-prepend">
+                    <button class="btn btn-outline-secondary dropdown-toggle solve_job_button" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Install</button>
+                    <div class="dropdown-menu">
+                      <a class="dropdown-item" href="#">Install</a>
+                      <a class="dropdown-item" href="#">Lock</a>
+                    </div>
+                  </div>
+                  <input type="text" class="form-control solve_job_text" aria-label="Text input with dropdown button">
+                  <div class="input-group-append">
+                    <button type="button" class="btn btn-outline-dark solve_job_trash_button"><i class="fa fa-trash"></i></button>
+                  </div>
+                </div>
+
+                <button type="button" class="btn btn-secondary" id="btn-add"><i class="fa fa-plus-square"></i></button>
+                <button type="button" class="btn btn-success" id="btn-solve">Solve!</button>
+              </form>
+            </div>
+          </div>
+          <div class="list-group" id="solv_problems" style="display:none;">
+          </div>
+          <div class="spinner-border text-secondary" id="solv_spinner" role="status" style="display:none;"><span class="sr-only">Solving...</span></div>
+          <div class="card" id="solv_result" style="display:none;">
+            <div class="card" id="solv_choices" style="display:none;">
+              <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" id="solv_choices_button" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Choices</button>
+                <div class="dropdown-menu" id="solv_choices_menu" aria-labelledby="solv_choices_button">
+                </div>
+              </div>
+            </div>
+            <div class="card-body">
+              <table id='packagelist' class="table table-striped table-autosort table-autofilter table-hover">
+                <thead>
+                  <tr>
+                    <th>Package</th>
+                    <th class="table-sortable:numeric">Size</th>
+                    <th class="table-sortable:alphanumeric table-filterable">Reason</th>
+                    <th>Rule</th>
+                  </tr>
+                </thead>
+                <tbody>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
         <div class="tab-pane fade" id="search" role="tabpanel" aria-labelledby="search-tab">
           <div class="card">
             <div class="card-body">
@@ -118,26 +119,42 @@
                   <button class="btn btn-primary" type="button" id="btn-search">Search</button>
                 </div>
               </div>
+              <table id='search_result' class="table table-striped table-hover" style="display:none;">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Version</th>
+                    <th>Arch</th>
+                    <th>Repo</th>
+                    <th>Summary</th>
+                  </tr>
+                </thead>
+                <tbody>
+                </tbody>
+              </table>
             </div>
-            <table id='search_result' class="table table-striped table-hover" style="display:none;">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Version</th>
-                  <th>Arch</th>
-                  <th>Repo</th>
-                  <th>Summary</th>
-                </tr>
-              </thead>
-              <tbody>
-              </tbody>
-            </table>
-
           </div>
-	      <div class="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab">TODO</div>
-	    </div>
-	  </div>
-	</div>
+        </div>
+
+        <div class="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab">
+          <div class="card">
+            <div class="card-body">
+              <table id='search_result' class="table table-striped table-hover">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Version</th>
+                    <th>Arch</th>
+                    <th>Repo</th>
+                    <th>Summary</th>
+                  </tr>
+                </thead>
+                <tbody>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
 
 	<div aria-live="polite" aria-atomic="true" class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
 	    <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-delay="2000">
