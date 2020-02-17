@@ -73,6 +73,10 @@ def distribution():
 @app.route('/solve', methods=['POST'])
 def solve():
 
+    distribution = request.args.get('distribution')
+    if distribution is None:
+        raise KeyError("missing distribution")
+
     if request.content_length > 2048:
         raise KeyError("request too large")
 
@@ -81,6 +85,7 @@ def solve():
         raise KeyError("missing data")
 
     d = Deptool.Deptool()
+    d.context = distribution
     app.logger.debug("got job %s", data);
 
     return jsonify(d.process_testcase(data.split('\n')))

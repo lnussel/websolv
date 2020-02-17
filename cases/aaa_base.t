@@ -1,6 +1,6 @@
 system x86_64 rpm
 
-distribution Tumbleweed
+repo repo-oss
 
 solverflags ignorerecommended
 

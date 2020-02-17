@@ -1,6 +1,6 @@
 $(document).ready(function() {
 var $JOB_TEMPLATE;
-
+var $REPO_TEMPLATE;
 
 function get_distro() {
    return $('#distro_select').val();
@@ -10,7 +10,7 @@ function get_arch() {
    return $('#arch_select').val();
 }
 
-function setup_distro() {
+function setup_distro(info) {
   if (!get_distro() || !get_arch()) {
     show_error_popup('Error', 'Missing distro or arch');
     return;
@@ -23,6 +23,25 @@ function setup_distro() {
     $JOB_TEMPLATE.find('.solve_job_text').each(function() { this.value = '';});
     $job.find('.solve_job_trash_button').prop('disable', true);
     job_setup_callbacks($job);
+  }
+  if (!$REPO_TEMPLATE) {
+    var $repo_template = $('#repolist div');
+    $REPO_TEMPLATE = $repo_template.clone().removeClass('repo_list_template');
+    $repo_template.remove();
+  }
+
+
+  if (info) {
+    $("#repolist").empty();
+    var num_repos = 0;
+    $.each(info['repos'], function(name, props) {
+      var $elem = $REPO_TEMPLATE.clone()
+      $elem.find('input').attr('id', 'repo_checkbox_'+num_repos).prop('data-repo', name).prop('checked', props['enabled'] == '1');
+      $elem.find('label').attr('for', 'repo_checkbox_'+num_repos).text(name);
+      ++num_repos;
+      $elem.appendTo("#repolist");
+      $elem.show();
+    });
   }
 
   $('#solv_result').hide();
@@ -70,7 +89,7 @@ function update_arch() {
       target.append(elem);
     });
 
-    setup_distro();
+    setup_distro(info);
   });
 }
 
@@ -139,6 +158,16 @@ function form_get_jobs() {
   return jobs;
 }
 
+function form_get_repos() {
+  var repos = [];
+  $('#repolist input').each(function(){
+    if (this.checked) {
+      repos.push(this['data-repo']);
+    }
+  });
+  return repos;
+}
+
 function Solvable(s) {
   this.id = Object.getOwnPropertyNames(s)[0];
   this._data = s[this.id];
@@ -176,7 +205,11 @@ function solve() {
   $('#solv_result').hide();
 
   var data = 'system ' + get_arch() + ' rpm\n';
-  data += 'distribution ' + get_distro() + '\n';
+
+  form_get_repos().forEach(function(e, i){
+    data += 'repo '+ e + "\n";
+  });
+
   var jobs = form_get_jobs();
   if (!jobs) {
     return;
@@ -258,6 +291,7 @@ function solve() {
     }
   });
   ret.fail(function(xhr, status, error) {
+    $('#solv_spinner').hide();
     show_error_popup(error, JSON.parse(xhr.responseText)['message']);
   });
 }

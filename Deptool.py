@@ -88,10 +88,14 @@ class Deptool(object):
         repodir = DATA_DIR + "/deptool/%s/repos"%context
         solvfile = DATA_DIR + '/deptool/%s/.cache/zypp/solv/%%s/solv'%context
 
-        if not repos:
-            repos = [f for f in os.listdir(repodir) if fnmatch(f, '*.repo')]
+        if repos is None:
+            if os.path.exists(repodir):
+                repos = [f for f in os.listdir(repodir) if fnmatch(f, '*.repo')]
+            else:
+                repos = []
 
         for r in repos:
+            logger.debug(repodir)
             if r.endswith('.repo'):
                 name = os.path.splitext(r)[0]
             else:
@@ -132,6 +136,9 @@ class Deptool(object):
         self.pool = solv.Pool()
         solver = None
 
+        if not self.context:
+            raise ParseError("missing context")
+
         for line in lines:
             line = line.strip()
             if line.startswith('#'):
@@ -141,12 +148,8 @@ class Deptool(object):
 
             tokens = line.split()
 
-            if tokens[0] == 'distribution' and len(tokens) == 2:
-                prepared = False
-                if self.context:
-                    raise ParseError("distribution already defined")
-                self.context = tokens[1]
-                self.add_repos()
+            if tokens[0] == 'repo' and len(tokens) == 2:
+                self.add_repos([tokens[1]])
             elif tokens[0] == 'system' and len(tokens) >= 3:
                 prepared = False
                 if tokens[2] != 'rpm':

@@ -10,28 +10,41 @@
 	  <h1 class="display-4" id="headline">Dependency Inspector</h1>
 	</div>
 
-	<form>
-	 <div class="form-row">
-	   <div class="col">
-	      <div class="input-group mb-3">
-		<div class="input-group-prepend">
-		  <label class="input-group-text" for="distro_select">Distribution</label>
-		</div>
-		<select class="custom-select" id="distro_select">
-		</select>
-	      </div>
-	    </div>
-	   <div class="col">
-	      <div class="input-group mb-3">
-		<div class="input-group-prepend">
-		  <label class="input-group-text" for="arch_select">Architecture</label>
-		</div>
-		<select class="custom-select" id="arch_select">
-		</select>
-	      </div>
-	    </div>
-	  </div>
-	</form>
+  <div class="card">
+    <div class="card-body">
+      <form>
+        <div class="form-row">
+          <div class="col">
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <label class="input-group-text" for="distro_select">Distribution</label>
+              </div>
+              <select class="custom-select" id="distro_select">
+              </select>
+            </div>
+          </div>
+          <div class="col">
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <label class="input-group-text" for="arch_select">Architecture</label>
+              </div>
+              <select class="custom-select" id="arch_select">
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="container">
+          <div class="row row-cols-4" id="repolist">
+            <div class="col form-group custom-control custom-switch" style="display:none;">
+              <input type="checkbox" class="custom-control-input">
+              <label class="custom-control-label">repo-foo</label>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
 	<div class="row">
 	  <div class="col-3">
 	    <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
@@ -48,7 +61,7 @@
 		    <form id="solveform">
 		      <div class="form-group form-check">
 			<input type="checkbox" class="form-check-input" id="solve_job_norecommends">
-			<label class="form-check-label" for="eonlyrecommendsxampleCheck1">no recomends</label>
+			<label class="form-check-label" for="solve_job_norecommends">no recomends</label>
 		      </div>
 		      <div class="input-group mb-3 solve_job_group job_template">
 			<div class="input-group-prepend">
