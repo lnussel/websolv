@@ -1,9 +1,17 @@
-var DISTRO;
-var ARCH;
+$(document).ready(function() {
 var $JOB_TEMPLATE;
 
+
+function get_distro() {
+   return $('#distro_select').val();
+}
+
+function get_arch() {
+   return $('#arch_select').val();
+}
+
 function setup_distro() {
-  if (!DISTRO || !ARCH) {
+  if (!get_distro() || !get_arch()) {
     show_error_popup('Error', 'Missing distro or arch');
     return;
   }
@@ -54,15 +62,12 @@ function update_arch() {
   target = $("#arch_select");
   target.empty();
 
-  $.get(ep_distribution + '?name=' + DISTRO, function(info, status) {
+  $.get(ep_distribution + '?name=' + get_distro(), function(info, status) {
 
     archs = info['arch'];
     $.each(archs, function(i, v) {
       elem = $('<option value="'+v+'"></option>').text(v);
       target.append(elem);
-      if (i == 0) {
-	ARCH = v;
-      }
     });
 
     setup_distro();
@@ -77,12 +82,10 @@ function start() {
     target.empty();
 
     target.on('change', function() {
-      DISTRO = $('#distro_select').val();
       update_arch();
     });
 
     $('#arch_select').on('change', function() {
-      ARCH = $('#arch_select').val();
       setup_distro();
     });
 
@@ -92,7 +95,6 @@ function start() {
       target.append(elem);
       if (v == 'Tumbleweed') {
 	elem.attr('selected', 1);
-	DISTRO = v;
 	need_init_arch = true;
       }
     });
@@ -153,7 +155,7 @@ function show_alternatives(relation) {
   $('#whatprovides_dialog').modal('show');
 
   var ep_whatprovides = $('#ep_whatprovides').attr('url');
-  $.getJSON(ep_whatprovides + '?' + $.param({'context': DISTRO, 'relation': relation}), function(info, status) {
+  $.getJSON(ep_whatprovides + '?' + $.param({'context': get_distro(), 'relation': relation}), function(info, status) {
     var seen = {};
     $.each(info, function(i, s) {
       var solvable = new Solvable(s);
@@ -173,8 +175,8 @@ function solve() {
 
   $('#solv_result').hide();
 
-  var data = 'system ' + ARCH + ' rpm\n';
-  data += 'distribution ' + DISTRO + '\n';
+  var data = 'system ' + get_arch() + ' rpm\n';
+  data += 'distribution ' + get_distro() + '\n';
   var jobs = form_get_jobs();
   if (!jobs) {
     return;
@@ -189,7 +191,7 @@ function solve() {
 
   $('#solv_spinner').show();
   var ep_solve = $('#ep_solve').attr('url');
-  ret = $.post(ep_solve + '?distribution=' + DISTRO, data, null, 'json' );
+  ret = $.post(ep_solve + '?distribution=' + get_distro(), data, null, 'json' );
   ret.done(function(result, textStatus, xhr) {
     $('#solv_spinner').hide();
     var $tbody = $('#solv_result tbody');
@@ -295,7 +297,7 @@ function solvable_info_clicked(e) {
     }
 
 
-  $.getJSON(ep_info + '?' + $.param({'context': DISTRO, 'arch': ARCH, 'package': name}), function(info, status) {
+  $.getJSON(ep_info + '?' + $.param({'context': get_distro(), 'arch': get_arch(), 'package': name}), function(info, status) {
     var $body = $('#solvable_props tbody');
     $body.empty();
     // XXX: we secrety take the first one
@@ -317,4 +319,5 @@ function b2s(size) {
   return Math.max(size, 0.1).toFixed(1) + units[i];
 }
 
-$(document).ready(start);
+start();
+});
