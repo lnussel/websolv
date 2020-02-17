@@ -124,8 +124,13 @@ function start() {
 
     $('#btn-add').on('click', function() { add_new_job() });
 
-    $('#btn-solve').on('click', function () {
-      solve();
+    $('#btn-solve').on('click', function () { solve() });
+
+    $('#btn-search').on('click', function() { search() })
+    $('#search-text').on('keypress', function (e) {
+      if (e.which == 13) {
+        search();
+      }
     });
   });
 }
@@ -168,11 +173,19 @@ function form_get_repos() {
   return repos;
 }
 
-function Solvable(s) {
-  this.id = Object.getOwnPropertyNames(s)[0];
-  this._data = s[this.id];
+function Solvable(sid, data) {
+  this.id = sid
+  this._data = data;
   this.name = this._data['NAME'];
   this.lookup = function(i) { return this._data[i]};
+}
+
+function dict2solvables(d) {
+  var solvables = []
+  Object.getOwnPropertyNames(d).forEach(function(sid) {
+    solvables.push(new Solvable(sid, d[sid]))
+  });
+  return solvables;
 }
 
 function show_alternatives(relation) {
@@ -186,8 +199,8 @@ function show_alternatives(relation) {
   var ep_whatprovides = $('#ep_whatprovides').attr('url');
   $.getJSON(ep_whatprovides + '?' + $.param({'context': get_distro(), 'relation': relation}), function(info, status) {
     var seen = {};
-    $.each(info, function(i, s) {
-      var solvable = new Solvable(s);
+    $.each(info, function(i, d) {
+      var solvable = dict2solvables(d)[0];
       $('<a href="#" class="list-group-item list-group-item-action"></a>').text(solvable.id).on("click", function(e){
 	e.preventDefault();
 	$('#whatprovides_dialog').modal('hide');
@@ -252,7 +265,7 @@ function solve() {
 	// XXX: html quoting
 	deps='';
 	r[2].forEach(function(rule){
-	  var solvable = new Solvable(rule[0]);
+	  var solvable = dict2solvables(rule[0])[0];
 	  var what = rule[1].toLowerCase();
 	  if (what.substring(0, 4) == 'pkg_') {
 	    what = what.substring(4);
@@ -272,14 +285,14 @@ function solve() {
 	  }
 	  deps += "<br>";
 	});
-	var solvable = new Solvable(r[0]);
+	var solvable = dict2solvables(r[0])[0];
 	var name = solvable.name;
 	var size = solvable.lookup('INSTALLSIZE');
 	var reason = r[1];
 	if (reason == 'UNIT_RULE') {
 	  reason = ''; // most of them are UNIT_RULE and it's confusing
 	}
-	var $info_link = $('<button class="btn btn-outline-secondary btn-sm" data-toggle="tooltip" data-placement="bottom"></button>').attr('title', solvable.id).text(name).on('click', solvable_info_clicked);
+	var $info_link = $('<button class="btn btn-link" data-toggle="tooltip" data-placement="bottom"></button>').attr('title', solvable.id).text(name).on('click', solvable_info_clicked);
 	var $row = $("<tr id=\"package_"+name+'"></tr>');
 	$tbody.append($row);
 	$('<td></td>').append($info_link).appendTo($row);
@@ -303,7 +316,7 @@ function solvable_info_clicked(e) {
   $('#solvable_info_title').text(name);
   $('#solvable_info').modal('show');
 
-  ep_info = $('#ep_info').attr('url');
+  var ep_info = $('#ep_info').attr('url');
 
   var solvable2table =  function($body, props) {
       $.each(props, function(k,v){
@@ -342,6 +355,35 @@ function solvable_info_clicked(e) {
     $('#solvable_props').show();
   });
 }
+
+function search() {
+  $('#search_result').hide();
+  $('#search_spinner').show();
+  var ep_search = $('#ep_search').attr('url');
+  var text = $('#search-text').val()
+  if (!text) {
+    show_error_popup("missing text");
+    $('#search_spinner').hide();
+    return;
+  }
+  $.getJSON(ep_search + '?' + $.param({'context': get_distro(), 'arch': get_arch(), 'text': text}), function(info, status) {
+    var $tbody = $('#search_result tbody');
+    $tbody.empty();
+    $.each(info, function(i, d) {
+      var s = new Solvable(i, d);
+      var $info_link = $('<button class="btn btn-link" data-toggle="tooltip" data-placement="bottom"></button>').attr('title', s.id).text(s.name).on('click', solvable_info_clicked);
+      var $row = $("<tr id=\"package_"+s.name+'"></tr>');
+      $tbody.append($row);
+      $('<td></td>').append($info_link).appendTo($row);
+      $('<td></td>').text(s.lookup('EVR')).appendTo($row);
+      $('<td></td>').text(s.lookup('ARCH')).appendTo($row);
+      $('<td></td>').text(s.lookup('SUMMARY')).appendTo($row);
+    });
+    $('#search_spinner').hide();
+    $('#search_result').show();
+  });
+
+};
 
 function b2s(size) {
   var i;

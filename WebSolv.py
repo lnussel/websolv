@@ -119,6 +119,23 @@ def info():
 
     return jsonify(result)
 
+@app.route('/search')
+def search():
+    context = request.args.get('context', None)
+    arch = request.args.get('arch', None)
+    text = request.args.get('text', None)
+    if not (context and text):
+        raise KeyError("missing parameters")
+
+    d = Deptool.Deptool()
+    d.context = context
+    if arch:
+        d.arch = arch
+    result = d.search(text)
+
+    return jsonify(result)
+
+
 @app.route('/whatprovides')
 def whatprovides():
     context = request.args.get('context', None)

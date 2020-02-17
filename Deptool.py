@@ -332,6 +332,27 @@ class Deptool(object):
 
         return result
 
+    def search(self, string):
+
+        if not self.pool:
+            self.prepare_pool()
+
+        result = {}
+
+        sel = self.pool.Selection()
+        di = self.pool.Dataiterator(solv.SOLVABLE_NAME, string, solv.Dataiterator.SEARCH_SUBSTRING|solv.Dataiterator.SEARCH_NOCASE)
+        for d in di:
+            sel.add_raw(solv.Job.SOLVER_SOLVABLE, d.solvid)
+
+        if sel.isempty():
+            logger.error("%s not found", string)
+            return result
+
+        for s in sel.solvables():
+            result[str(s)] = self._solvable2dict(s)
+
+        return result
+
     def info(self, package, deps = True):
 
         if not self.pool:
@@ -339,8 +360,7 @@ class Deptool(object):
 
         result = {}
 
-        flags = solv.Selection.SELECTION_NAME|solv.Selection.SELECTION_PROVIDES|solv.Selection.SELECTION_GLOB
-        flags |= solv.Selection.SELECTION_CANON|solv.Selection.SELECTION_DOTARCH|solv.Selection.SELECTION_REL
+        flags = solv.Selection.SELECTION_NAME|solv.Selection.SELECTION_CANON|solv.Selection.SELECTION_DOTARCH
         sel = self.pool.select(package, flags)
         if sel.isempty():
             logger.error("%s not found", package)
@@ -547,7 +567,8 @@ class CommandLineInterface(cmdln.Cmdln):
         self.d.prepare_pool()
 
         for n in packages:
-            sel = self.d.pool.select(n, solv.Selection.SELECTION_NAME)
+            flags = solv.Selection.SELECTION_NAME|solv.Selection.SELECTION_CANON|solv.Selection.SELECTION_DOTARCH
+            sel = self.d.pool.select(n, flags)
             if sel.isempty():
                 logger.error("%s not found", n)
             for s in sel.solvables():
@@ -655,6 +676,22 @@ class CommandLineInterface(cmdln.Cmdln):
                     print(n)
                     for k, v in result[n].items():
                         print("  - {}: {}".format(k, v))
+
+    def do_search(self, subcmd, opts, *args):
+        """${cmd_name}: show some info about a package
+
+        ${cmd_usage}
+        ${cmd_option_list}
+        """
+
+        for n in args:
+            result = self.d.search(n)
+            if result:
+                for n in result.keys():
+                    print(n)
+                    for k, v in result[n].items():
+                        print("  - {}: {}".format(k, v))
+
 
     @cmdln.option("--size", action="store_true",
                   help="print installed size")
