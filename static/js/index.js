@@ -138,7 +138,7 @@ function start() {
     });
 
     var l = window.location.hash;
-    if (l == '#search' || l == '#solve' || l == '#settings') {
+    if (l == '#search' || l == '#solve') {
       $(l + '-tab').tab('show');
     } else {
       $('#solve-tab').tab('show');
