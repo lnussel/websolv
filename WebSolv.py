@@ -124,6 +124,7 @@ def search():
     context = request.args.get('context', None)
     arch = request.args.get('arch', None)
     text = request.args.get('text', None)
+    repos = request.args.getlist('repo[]')
     if not (context and text):
         raise KeyError("missing parameters")
 
@@ -131,7 +132,8 @@ def search():
     d.context = context
     if arch:
         d.arch = arch
-    result = d.search(text)
+    app.logger.info(repos)
+    result = d.search(text, repos)
 
     return jsonify(result)
 

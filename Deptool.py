@@ -312,6 +312,7 @@ class Deptool(object):
         result = {}
         for attr in sattrs:
             sid = getattr(solv, attr, 0)
+            result['repo'] = s.repo.name
             # pretty stupid, just lookup strings and numbers
             value = s.lookup_str(sid)
             if value:
@@ -332,15 +333,19 @@ class Deptool(object):
 
         return result
 
-    def search(self, string):
+    def search(self, string, repos = None):
 
         if not self.pool:
-            self.prepare_pool()
+            self.prepare_pool(repos)
 
         result = {}
 
         sel = self.pool.Selection()
         di = self.pool.Dataiterator(solv.SOLVABLE_NAME, string, solv.Dataiterator.SEARCH_SUBSTRING|solv.Dataiterator.SEARCH_NOCASE)
+        for d in di:
+            sel.add_raw(solv.Job.SOLVER_SOLVABLE, d.solvid)
+
+        di = self.pool.Dataiterator(solv.SOLVABLE_SUMMARY, string, solv.Dataiterator.SEARCH_SUBSTRING|solv.Dataiterator.SEARCH_NOCASE)
         for d in di:
             sel.add_raw(solv.Job.SOLVER_SOLVABLE, d.solvid)
 
@@ -353,10 +358,10 @@ class Deptool(object):
 
         return result
 
-    def info(self, package, deps = True):
+    def info(self, package, deps = True, repos = None):
 
         if not self.pool:
-            self.prepare_pool()
+            self.prepare_pool(repos)
 
         result = {}
 
@@ -433,13 +438,11 @@ class Deptool(object):
 
         kinds = ['PROVIDES', 'RECOMMENDS', 'REQUIRES', 'SUPPLEMENTS', 'ENHANCES', 'SUGGESTS']
 
-        # FIXME: need to parse relation
-        p = self.pool.str2id(relation)
         for kind in kinds:
             kindid = getattr(solv, 'SOLVABLE_' + kind, 0)
-            sel = self.pool.matchdepid(p, solv.Selection.SELECTION_REL | solv.Selection.SELECTION_FLAT, kindid, 0)
+            sel = self.pool.matchdeps(relation, solv.Selection.SELECTION_REL | solv.Selection.SELECTION_FLAT, kindid, 0)
             if sel.isempty():
-                logger.debug('nothing %s %s', kind.lower(), p)
+                logger.debug('nothing %s %s', kind.lower(), relation)
                 continue
             for r in sel.solvables():
                 result.setdefault(kind,[]).append(fqpn(r))

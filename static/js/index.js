@@ -377,7 +377,7 @@ function search() {
     $('#search_spinner').hide();
     return;
   }
-  $.getJSON(ep_search + '?' + $.param({'context': get_distro(), 'arch': get_arch(), 'text': text}), function(info, status) {
+  $.getJSON(ep_search + '?' + $.param({'context': get_distro(), 'arch': get_arch(), 'text': text, 'repo': form_get_repos()}), function(info, status) {
     var $tbody = $('#search_result tbody');
     $tbody.empty();
     $.each(info, function(i, d) {
@@ -388,6 +388,7 @@ function search() {
       $('<td></td>').append($info_link).appendTo($row);
       $('<td></td>').text(s.lookup('EVR')).appendTo($row);
       $('<td></td>').text(s.lookup('ARCH')).appendTo($row);
+      $('<td></td>').text(s.lookup('repo')).appendTo($row);
       $('<td></td>').text(s.lookup('SUMMARY')).appendTo($row);
     });
     $('#search_spinner').hide();
