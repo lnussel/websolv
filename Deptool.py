@@ -11,6 +11,13 @@ from fnmatch import fnmatch
 from configparser import SafeConfigParser
 import solv
 import rpm
+import requests
+import tempfile
+import gzip
+import io
+from urllib.parse import urljoin
+# TODO
+#from xdg.BaseDirectory import save_cache_path
 
 DATA_DIR = os.path.dirname(os.path.realpath(__file__))
 
@@ -33,6 +40,91 @@ class PackageNotFound(DeptoolException):
 # fully qualified package name of a solvable ie name-evr.arch
 def fqpn(s):
     return '{}-{}.{}'.format(s.name, s.evr, s.arch)
+
+# courtesy of pkglistgen
+def dump_solv(fn, name, baseurl):
+    pool = solv.Pool()
+    pool.setarch()
+
+    # XXX: we should check if the repodata is current when updating it to avoid
+    # useless regenerating of solv files
+    repo = pool.add_repo(name)
+    if not parse_repomd(repo, baseurl):
+        raise Exception('no repomd in ' + baseurl)
+
+    repo.create_stubs()
+
+    if not os.path.exists(os.path.dirname(fn)):
+        os.makedirs(os.path.dirname(fn))
+    ofh = solv.xfopen(fn+".new", 'w')
+    repo.write(ofh)
+    ofh.flush()
+    os.rename(fn+'.new', fn)
+    logger.debug('wrote %s', fn)
+
+    return fn
+
+def parse_repomd(repo, baseurl):
+    url = urljoin(baseurl, 'repodata/repomd.xml')
+    repomd = requests.get(url)
+    if repomd.status_code != requests.codes.ok:
+        return False
+
+    f = tempfile.TemporaryFile()
+    f.write(repomd.content)
+    f.flush()
+    os.lseek(f.fileno(), 0, os.SEEK_SET)
+    repo.add_repomdxml(solv.xfopen_fd(None, f.fileno()), 0)
+
+    def find(repo, what):
+        di = repo.Dataiterator_meta(solv.REPOSITORY_REPOMD_TYPE, what, solv.Dataiterator.SEARCH_STRING)
+        di.prepend_keyname(solv.REPOSITORY_REPOMD)
+        for d in di:
+            dp = d.parentpos()
+            filename = dp.lookup_str(solv.REPOSITORY_REPOMD_LOCATION)
+            chksum = dp.lookup_checksum(solv.REPOSITORY_REPOMD_CHECKSUM)
+            if filename and not chksum:
+                logger.error("no %s file checksum!" % filename)
+                filename = None
+                chksum = None
+            if filename:
+                return (filename, chksum)
+        return (None, None)
+
+    location, chksum = find(repo, 'primary')
+
+    url = urljoin(baseurl, location)
+    logger.info(url)
+    with requests.get(url, stream=True) as primary:
+        if primary.status_code != requests.codes.ok:
+            raise Exception(url + ' does not exist')
+
+        f = tempfile.TemporaryFile()
+        f.write(primary.content)
+        f.flush()
+        os.lseek(f.fileno(), 0, os.SEEK_SET)
+
+        fchksum = solv.Chksum(chksum.type)
+        if not fchksum:
+            raise Exception("unknown checksum")
+            return False
+        fchksum.add_fd(f.fileno())
+        if fchksum != chksum:
+            raise Exception('checksums do not match: got %s, expected %s'%(fchksum, chksum))
+
+        os.lseek(f.fileno(), 0, os.SEEK_SET)
+        # yeah kind of silly
+        if (url.endswith('.gz')):
+            os.ftruncate(f.fileno(), 0)
+            f.write(gzip.GzipFile(fileobj=io.BytesIO(primary.content)).read())
+            f.flush()
+            os.lseek(f.fileno(), 0, os.SEEK_SET)
+
+        repo.add_rpmmd(solv.xfopen_fd(None, f.fileno()), None, 0)
+        return True
+
+    return False
+
 
 class Deptool(object):
 
@@ -57,6 +149,10 @@ class Deptool(object):
                 result[key] = settings['global'][key].split(' ')
             else:
                 result[key] = settings['global'][key]
+
+        # TODO:
+        # make repo dir configurable per arch so biarch and separate
+        # arch trees look like one
 
         result['repos'] = {}
         for config in self._read_repos(context):
@@ -86,7 +182,7 @@ class Deptool(object):
     def _read_repos(self, context, repos = None):
 
         repodir = DATA_DIR + "/deptool/%s/repos"%context
-        solvfile = DATA_DIR + '/deptool/%s/.cache/zypp/solv/%%s/solv'%context
+        solvfile = DATA_DIR + '/deptool/%s/.cache/solv/%%s.solv'%context
 
         if repos is None:
             if os.path.exists(repodir):
@@ -449,6 +545,19 @@ class Deptool(object):
 
         return result
 
+    def refresh_repos(self, context = None):
+        if context is None:
+            context = self.context
+        if context is None:
+            raise DeptoolException("missing context");
+
+        logger.info('refreshing %s', context)
+
+        for config in self._read_repos(context):
+            name = config.sections()[0]
+            logger.info(' updating repo %s', name)
+            dump_solv(config[name]['.solv'], name, config[name]['baseurl'])
+
 class CommandLineInterface(cmdln.Cmdln):
     def __init__(self, *args, **kwargs):
         cmdln.Cmdln.__init__(self, args, kwargs)
@@ -701,7 +810,7 @@ class CommandLineInterface(cmdln.Cmdln):
     @cmdln.option("--explain", dest="explain", action="append",
                   help="rule to explain")
     def do_parse(self, subcmd, opts, filename):
-        """${cmd_name}: generate pot file for patterns
+        """${cmd_name}: solve test case
 
         ${cmd_usage}
         ${cmd_option_list}
@@ -724,6 +833,21 @@ class CommandLineInterface(cmdln.Cmdln):
 
                 if opts.size:
                     print("%s TOTAL" % (result['size']))
+
+    @cmdln.option("-a", "--all", action="store_true",
+                  help="refresh all")
+    def do_ref(self, subcmd, opts):
+        """${cmd_name}: refresh repos
+
+        ${cmd_usage}
+        ${cmd_option_list}
+        """
+
+        if self.d.context:
+            self.d.refresh_repos()
+        else:
+            for c in self.d.context_list():
+                self.d.refresh_repos(c)
 
 if __name__ == "__main__":
     app = CommandLineInterface()
