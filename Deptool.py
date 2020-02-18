@@ -128,11 +128,17 @@ def parse_repomd(repo, baseurl):
 
 class Deptool(object):
 
-    def __init__(self):
+    def __init__(self, context = None):
         self.arch = None
-        self.context = None
+        self.context = self._context_validate(context)
         self.with_system = None
         self.pool = None
+
+    def _context_validate(self, context):
+        if context and not os.path.exists('/'.join((DATA_DIR, 'deptool', context, 'settings.conf'))):
+            raise DeptoolException('invalid context')
+
+        return context
 
     def context_list(self):
         d = DATA_DIR + "/deptool"
@@ -585,9 +591,8 @@ class CommandLineInterface(cmdln.Cmdln):
         global logger
         logger = logging.getLogger()
 
-        self.d = Deptool()
+        self.d = Deptool(self.options.context)
         self.d.arch = self.options.arch
-        self.d.context = self.options.context
         self.d.with_system = self.options.system
 
         if self.options.context and self.options.context == 'list':

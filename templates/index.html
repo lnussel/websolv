@@ -191,6 +191,27 @@
 	  </div>
 	</div>
 
+	<div class="modal fade" id="dep_info" tabindex="-1" role="dialog" aria-labelledby="dep_info_title" aria-hidden="true">
+	  <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+	    <div class="modal-content">
+	      <div class="modal-header">
+		<h5 class="modal-title" id="dep_info_title">XXX</h5>
+		<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+		  <span aria-hidden="true">&times;</span>
+		</button>
+	      </div>
+              <div class="modal-body">
+		<div class="spinner-border text-secondary" id="dep_info_spinner" role="status" style="display:none;"><span class="sr-only">Processing...</span></div>
+                <div id="dep_info_props"></div>
+              </div>
+	      <div class="modal-footer">
+		<button type="button" class="btn btn-primary" data-dismiss="modal" id="dep_info_close">Close</button>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+
+
 	<div class="modal fade" id="whatprovides_dialog" tabindex="-1" role="dialog" aria-labelledby="whatprovides_dialog_title" aria-hidden="true">
 	  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
 	    <div class="modal-content">
@@ -217,5 +238,6 @@
 	<div id="ep_info" url="{{ url_for('info') }}"></div>
 	<div id="ep_whatprovides" url="{{ url_for('whatprovides') }}"></div>
 	<div id="ep_search" url="{{ url_for('search') }}"></div>
+	<div id="ep_depinfo" url="{{ url_for('depinfo_json') }}"></div>
 
 {% endblock %}

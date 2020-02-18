@@ -84,8 +84,7 @@ def solve():
     if data is None:
         raise KeyError("missing data")
 
-    d = Deptool.Deptool()
-    d.context = distribution
+    d = Deptool.Deptool(context=distribution)
     app.logger.debug("got job %s", data);
 
     return jsonify(d.process_testcase(data.split('\n')))
@@ -111,8 +110,7 @@ def info():
     if not (context and package):
         raise KeyError("missing parameters")
 
-    d = Deptool.Deptool()
-    d.context = context
+    d = Deptool.Deptool(context=context)
     if arch:
         d.arch = arch
     result = d.info(package)
@@ -128,8 +126,7 @@ def search():
     if not (context and text):
         raise KeyError("missing parameters")
 
-    d = Deptool.Deptool()
-    d.context = context
+    d = Deptool.Deptool(context=context)
     if arch:
         d.arch = arch
     app.logger.info(repos)
@@ -145,14 +142,14 @@ def whatprovides():
     if not relation:
         raise KeyError("missing relation parameter")
 
-    d = Deptool.Deptool()
-    d.context = context
+    d = Deptool.Deptool(context=context)
     result = d.whatprovides(relation)
 
     return jsonify(result)
 
 @app.route('/rdeps')
 def rdeps_json():
+    context = request.args.get('context', None)
     solvable = request.args.get('solvable', None)
     if not solvable:
         raise KeyError("missing relation parameter")
@@ -162,23 +159,22 @@ def rdeps_json():
 
     return jsonify(result)
 
-@app.route('/rdeps')
+@app.route('/depinfo')
 def depinfo_json():
-    solvable = request.args.get('solvable', None)
-    if not solvable:
+    context = request.args.get('context', None)
+    relation = request.args.get('relation', None)
+    if relation is None:
         raise KeyError("missing relation parameter")
 
     d = Deptool.Deptool(context=context)
-    result = d.depinfo(solvable)
+    result = d.depinfo(relation)
 
     return jsonify(result)
-
 
 @app.route('/info/<string:context>/<string:package>')
 def info_path(context, package):
     arch = request.args.get('arch', None)
-    d = Deptool.Deptool()
-    d.context = context
+    d = Deptool.Deptool(context=context)
     d.arch = arch
     result = d.info(package)
 

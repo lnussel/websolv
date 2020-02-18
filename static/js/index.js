@@ -274,7 +274,7 @@ function solve() {
     if (result.hasOwnProperty('newsolvables')) {
       result['newsolvables'].forEach(function(r) {
 	// XXX: html quoting
-	deps='';
+	var $deps=$('<td></td>');
 	r[2].forEach(function(rule){
 	  var solvable = dict2solvables(rule[0])[0];
 	  var what = rule[1].toLowerCase();
@@ -282,19 +282,23 @@ function solve() {
 	    what = what.substring(4);
 	  }
 	  if (what != 'supplemented') {
-	    deps += '<a href="#package_' + solvable.name + '">' + solvable.name + '</a> ';
+	    $deps.append($('<a href="#package_' + solvable.name + '">' + solvable.name + '</a>'));
 	  } else {
-	    deps += '<span>' + solvable.name + '</span> ';
+	    $deps.append($('<span></span>').text(solvable.name));
 	  }
-	  deps += what + ' ';
-	  for (i=2; i< rule.length; ++i) {
-	    deps += '<i>';
+	  $deps.append($('<span class="ml-1"></span>').text(what));
+          $deps.append(
+            $('<a href="#" class="ml-1" data-toggle="tooltip" data-placement="bottom"></button>')
+              .attr('title', rule[2])
+              .text(rule[2])
+              .on('click', dep_info_clicked)
+          );
+	  for (i=3; i< rule.length; ++i) {
 	    if(rule[i]) {
-	      deps += ' ' + rule[i];
+	      $deps.append($('<i class="ml-2"></i>').text(rule[i]));
 	    }
-	    deps += '</i>';
 	  }
-	  deps += "<br>";
+	  $deps.append($("<br>"));
 	});
 	var solvable = dict2solvables(r[0])[0];
 	var name = solvable.name;
@@ -309,7 +313,7 @@ function solve() {
 	$('<td></td>').append($info_link).appendTo($row);
 	$('<td></td>').text(size).appendTo($row);
 	$('<td></td>').text(reason).appendTo($row);
-	$('<td></td>').append($(deps)).appendTo($row);
+	$row.append($deps);
       });
       $('#solv_result').show();
     }
@@ -336,7 +340,20 @@ function solvable_info_clicked(e) {
 	var $col = $('<td></td>');
 	if (Array.isArray(v)) {
 	  var $list = $('<ul></ul>');
-	  $.each(v, function(i, line){$('<li><li>').text(line).appendTo($list)});
+          if (k == 'REQUIRES' || k == 'PROVIDES' || k == 'SUGGESTS' ||  k == 'RECOMMENDS') {
+            $.each(v, function(i, relation) {
+            $('<li></li>').append(
+              $('<a href="#" class="data-toggle="tooltip" data-placement="bottom"></button>')
+                .attr('title', relation)
+                .text(relation)
+                .on('click', function(e) {
+                  $('#solvable_info').modal('hide');
+                  dep_info_clicked(e);
+                })).appendTo($list);
+            });
+          } else {
+            $.each(v, function(i, line){$('<li><li>').text(line).appendTo($list)});
+          }
 	  $col.append($list);
 	} else {
 	  if (k == 'LICENSE') {
@@ -366,6 +383,43 @@ function solvable_info_clicked(e) {
     $('#solvable_props').show();
   });
 }
+
+function dep_info_clicked(e) {
+  var name = e.target.getAttribute('title');
+  $('#dep_info_spinner').show();
+  $('#dep_info_props').hide();
+  $('#dep_info_title').text(name);
+  $('#dep_info').modal('show');
+
+  var ep_depinfo = $('#ep_depinfo').attr('url');
+
+  $.getJSON(ep_depinfo + '?' + $.param({'context': get_distro(), 'relation': name}), function(info, status) {
+    var $content = $('#dep_info_props');
+    $content.empty();
+    var relations = Object.getOwnPropertyNames(info);
+    $.each(relations, function(i, r) {
+      console.log(r);
+      $content.append($('<h5></h5>').text(r));
+      var $relationlist = $('<ul></ul>');
+      $.each(info[r], function(i, sid) {
+        $('<li></li>')
+          .append(
+            $('<button class="btn btn-link" data-toggle="tooltip" data-placement="bottom"></button>')
+            .attr('title', sid)
+            .text(sid)
+            .on('click', function(e) {
+              $('#dep_info').modal('hide');
+              solvable_info_clicked(e);
+            }))
+        .appendTo($relationlist);
+      });
+      $content.append($relationlist);
+    });
+    $('#dep_info_spinner').hide();
+    $('#dep_info_props').show();
+  });
+}
+
 
 function search() {
   $('#search_result').hide();
