@@ -1,0 +1,8 @@
+[Everything]
+name=Fedora 31
+enabled=1
+autorefresh=0
+baseurl=http://repo.atlantic.net/fedora/linux/releases/31/Everything/x86_64/os/
+path=/
+type=rpm-md
+keeppackages=0
