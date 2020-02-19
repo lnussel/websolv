@@ -51,7 +51,7 @@ function setup_distro(info) {
 function add_new_job(name = null) {
   var $elem = $JOB_TEMPLATE.clone()
   if (name) {
-    $elem.find('.solve_job_text').each(function() { this.value = name;});
+    $elem.find('.solve_job_text').val(name)
   }
   $elem.insertBefore('#btn-add');
   job_setup_callbacks($elem);
@@ -65,6 +65,10 @@ function job_setup_callbacks($elem) {
 
   $elem.find('.solve_job_trash_button').on('click', function () {
     $elem.remove();
+  });
+
+  $elem.find('.solve_job_search_button').on('click', function () {
+    $('#search-tab').tab('show');
   });
 
   $elem.find('.solve_job_text').on('keypress', function (e) {
@@ -278,7 +282,6 @@ function solve() {
     );
     var $buttons = $('#solv_choices_menu').empty();
     if (result.hasOwnProperty('choices') && result['choices'].length > 0) {
-      console.log("have choices");
       $.each(result['choices'], function(i, c){
 	$('<a class="dropdown-item" href="#"></a>').text(c).appendTo($buttons).on("click", function() {show_alternatives(c)});
       });
@@ -306,7 +309,11 @@ function solve() {
 	    what = what.substring(4);
 	  }
 	  if (what != 'supplemented') {
-	    $deps.append($('<a href="#package_' + solvable.name + '">' + solvable.name + '</a>'));
+            $deps.append($('<a data-toggle="tooltip" data-placement="bottom"></button>')
+              .attr('title', solvable.id)
+              .text(solvable.name)
+              .attr('href', '#package_'+solvable.name)
+              );
 	  } else {
 	    $deps.append($('<span></span>').text(solvable.name));
 	  }
@@ -341,7 +348,9 @@ function solve() {
       });
       $('#solv_result_packagelist').append($table);
       $('#solv_result').show();
-      $table.dataTable({
+      var table = $table.DataTable({
+        "scrollY": true,
+        paging: false,
         "order": [[1, 'desc']],
         columnDefs: [
           { targets: [3], 'orderable': false },
@@ -392,7 +401,7 @@ function solvable_info_clicked(e) {
 	  if (k == 'LICENSE') {
 	    $col.append($('<a href="https://spdx.org/licenses/{}.html"></a>'.replace('{}', v)).text(v))
 	  } else if (k.substr(-4) == 'SIZE') {
-	    $col.text(b2s(v));
+	    $col.append(b2s(v));
 	  } else if (typeof(v) == 'string' && (v.substr(0, 7) == 'http://' || v.substr(0,8) == 'https://')) {
 	    $('<a></a>').attr('href', v).text(v).appendTo($col);
 	  } else {
@@ -431,7 +440,6 @@ function dep_info_clicked(e) {
     $content.empty();
     var relations = Object.getOwnPropertyNames(info);
     $.each(relations, function(i, r) {
-      console.log(r);
       $content.append($('<h5></h5>').text(r));
       var $relationlist = $('<ul></ul>');
       $.each(info[r], function(i, sid) {
@@ -486,8 +494,20 @@ function search() {
     $.each(info, function(i, d) {
       var s = new Solvable(i, d);
       var $info_link = $('<button class="btn btn-link" data-toggle="tooltip" data-placement="bottom"></button>').attr('title', s.id).text(s.name).on('click', solvable_info_clicked);
+      var $install_link = $('<button class="btn btn-link" data-toggle="tooltip" data-placement="bottom"></button>')
+        .attr('title', 'install')
+        .append($('<i class="fa fa-check"></i>'))
+        .on('click', function(){
+          // FIXME: we should actually fill the one where the search button was clicked
+          var $input = $('#solveform .solve_job_text').last();
+          if ($input.val())
+            add_new_job(s.name);
+          else
+            $input.val(s.name);
+          $("#solve-tab").tab('show');
+        });
       var $row = $("<tr id=\"package_"+s.name+'"></tr>');
-      $('<td></td>').append($info_link).appendTo($row);
+      $('<td></td>').append($info_link).append($install_link).appendTo($row);
       $('<td></td>').text(s.lookup('EVR')).appendTo($row);
       $('<td></td>').text(s.lookup('ARCH')).appendTo($row);
       $('<td></td>').text(s.lookup('repo')).appendTo($row);
