@@ -89,26 +89,14 @@
           </div>
           <div class="spinner-border text-secondary" id="solv_spinner" role="status" style="display:none;"><span class="sr-only">Solving...</span></div>
           <div class="card" id="solv_result" style="display:none;">
-            <div class="card" id="solv_choices" style="display:none;">
-              <div class="dropdown">
+            <div class="card-body">
+              <div class="dropdown" id="solv_choices">
                 <button class="btn btn-sm btn-outline-secondary dropdown-toggle" id="solv_choices_button" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Choices</button>
                 <div class="dropdown-menu" id="solv_choices_menu" aria-labelledby="solv_choices_button">
                 </div>
               </div>
-            </div>
-            <div class="card-body">
-              <table id='packagelist' class="table table-striped table-autosort table-autofilter table-hover">
-                <thead>
-                  <tr>
-                    <th>Package</th>
-                    <th class="table-sortable:numeric">Size</th>
-                    <th class="table-sortable:alphanumeric table-filterable">Reason</th>
-                    <th>Rule</th>
-                  </tr>
-                </thead>
-                <tbody>
-                </tbody>
-              </table>
+              <div id="solv_result_packagelist">
+              </div>
             </div>
           </div>
         </div>
@@ -121,19 +109,8 @@
                   <button class="btn btn-primary" type="button" id="btn-search">Search</button>
                 </div>
               </div>
-              <table id='search_result' class="table table-striped table-hover" style="display:none;">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Version</th>
-                    <th>Arch</th>
-                    <th>Repo</th>
-                    <th>Summary</th>
-                  </tr>
-                </thead>
-                <tbody>
-                </tbody>
-              </table>
+              <div id='search_result'>
+              </div>
             </div>
           </div>
         </div>

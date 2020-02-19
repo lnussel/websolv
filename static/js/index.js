@@ -227,6 +227,22 @@ function show_alternatives(relation) {
 function solve() {
 
   $('#solv_result').hide();
+  $('#solv_result_packagelist').empty();
+  var $table = $(`
+    <table class="table table-striped table-hover">
+      <thead>
+        <tr>
+          <th>Package</th>
+          <th>Size</th>
+          <th>Reason</th>
+          <th>Rule</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>`);
+
+  var $tbody = $table.find('tbody');
 
   var data = 'system ' + get_arch() + ' rpm\n';
 
@@ -251,16 +267,24 @@ function solve() {
   ret = $.post(ep_solve + '?distribution=' + get_distro(), data, null, 'json' );
   ret.done(function(result, textStatus, xhr) {
     $('#solv_spinner').hide();
-    var $tbody = $('#solv_result tbody');
-    $tbody.empty();
-    $tbody.append("<tr><td>TOTAL</td><td>"+result['size']+"</td><td></td><td></td></tr>");
+    var size = result['size'];
+    $tbody.append(
+      $("<tr></tr>")
+        .append("<td>TOTAL</td>")
+        // XXX: data-order via attr doesn't work with DataTable
+        .append($(`<td data-order="${size}"></td>`).append(b2s(result['size'])))
+        .append("<td></td>")
+        .append("<td></td>")
+    );
+    var $buttons = $('#solv_choices_menu').empty();
     if (result.hasOwnProperty('choices') && result['choices'].length > 0) {
       console.log("have choices");
-      var $buttons = $('#solv_choices_menu').empty();
       $.each(result['choices'], function(i, c){
 	$('<a class="dropdown-item" href="#"></a>').text(c).appendTo($buttons).on("click", function() {show_alternatives(c)});
       });
       $('#solv_choices').show();
+    } else {
+      $('#solv_choices').hide();
     }
     var $errorlist = $('#solv_problems');
     if (result.hasOwnProperty('problems')) {
@@ -309,13 +333,22 @@ function solve() {
 	}
 	var $info_link = $('<button class="btn btn-link" data-toggle="tooltip" data-placement="bottom"></button>').attr('title', solvable.id).text(name).on('click', solvable_info_clicked);
 	var $row = $("<tr id=\"package_"+name+'"></tr>');
-	$tbody.append($row);
 	$('<td></td>').append($info_link).appendTo($row);
-	$('<td></td>').text(size).appendTo($row);
+	$('<td></td>').attr('data-order', size).append(b2s(size)).appendTo($row);
 	$('<td></td>').text(reason).appendTo($row);
 	$row.append($deps);
+        $tbody.append($row);
       });
+      $('#solv_result_packagelist').append($table);
       $('#solv_result').show();
+      $table.dataTable({
+        "order": [[1, 'desc']],
+        columnDefs: [
+          { targets: [3], 'orderable': false },
+          { targets: [1], 'searchable': false },
+        ],
+        "pageLength": 25
+      });
     }
   });
   ret.fail(function(xhr, status, error) {
@@ -422,7 +455,25 @@ function dep_info_clicked(e) {
 
 
 function search() {
-  $('#search_result').hide();
+  $('#search_result').empty().hide();
+  var $table = $(`
+    <table class="table table-striped table-hover">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Version</th>
+          <th>Arch</th>
+          <th>Repo</th>
+          <th>Summary</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+  `);
+
+  var $tbody = $table.find('tbody');
+
   $('#search_spinner').show();
   var ep_search = $('#ep_search').attr('url');
   var text = $('#search-text').val()
@@ -432,33 +483,37 @@ function search() {
     return;
   }
   $.getJSON(ep_search + '?' + $.param({'context': get_distro(), 'arch': get_arch(), 'text': text, 'repo': form_get_repos()}), function(info, status) {
-    var $tbody = $('#search_result tbody');
-    $tbody.empty();
     $.each(info, function(i, d) {
       var s = new Solvable(i, d);
       var $info_link = $('<button class="btn btn-link" data-toggle="tooltip" data-placement="bottom"></button>').attr('title', s.id).text(s.name).on('click', solvable_info_clicked);
       var $row = $("<tr id=\"package_"+s.name+'"></tr>');
-      $tbody.append($row);
       $('<td></td>').append($info_link).appendTo($row);
       $('<td></td>').text(s.lookup('EVR')).appendTo($row);
       $('<td></td>').text(s.lookup('ARCH')).appendTo($row);
       $('<td></td>').text(s.lookup('repo')).appendTo($row);
       $('<td></td>').text(s.lookup('SUMMARY')).appendTo($row);
+      $tbody.append($row);
     });
     $('#search_spinner').hide();
-    $('#search_result').show();
+    $('#search_result').append($table).show();
+    $table.DataTable({
+      "order": [],
+      "pageLength": 25
+    });
   });
 
 };
 
 function b2s(size) {
   var i;
-  var units = [' kB', ' MB', ' GB', ' TB'];
+  var units = ['kB', 'MB', 'GB', 'TB'];
   for(i = -1; size > 1024 && i < units.length-1; ++i) {
       size = size / 1024;
   }
+  if (i != -1)
+    return Math.max(size, 0.1).toFixed(1) + "&nbsp;" + units[i];
 
-  return Math.max(size, 0.1).toFixed(1) + units[i];
+  return size;
 }
 
 start();
