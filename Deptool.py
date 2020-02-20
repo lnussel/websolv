@@ -37,6 +37,8 @@ class ParseError(DeptoolException):
 class PackageNotFound(DeptoolException):
     pass
 
+class InvaliRepoMD(DeptoolException):
+    pass
 
 # fully qualified package name of a solvable ie name-evr.arch
 def fqpn(s):
@@ -64,7 +66,7 @@ def update_repo_cache(context, config, name, force = False):
 
     baseurl = config[name]['baseurl']
     if not parse_repomd(repo, baseurl, raw_dir, force):
-        raise Exception('no repomd in ' + baseurl)
+        raise InvaliRepoMD('no repomd in ' + baseurl)
 
     repo.create_stubs()
 
@@ -83,7 +85,7 @@ def parse_repomd(repo, baseurl, target_dir, force = False):
 
     repomd_fn = os.path.join(target_dir, 'repomd.xml')
     headers = {}
-    if os.path.exists(repomd_fn):
+    if not force and os.path.exists(repomd_fn):
         headers['If-Modified-Since'] = time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.gmtime(os.path.getmtime(repomd_fn)))
     url = urljoin(baseurl, 'repodata/repomd.xml')
     repomd = requests.get(url, headers = headers)
@@ -116,13 +118,13 @@ def parse_repomd(repo, baseurl, target_dir, force = False):
     location, chksum = find(repo, 'primary')
     logger.debug('location %s', location)
     if location is None:
-        raise DeptoolException('missing location in repomd.xml')
+        raise InvaliRepoMD('missing location in repomd.xml')
 
     url = urljoin(baseurl, location)
     logger.info(url)
     with requests.get(url, stream=True) as primary:
         if primary.status_code != requests.codes.ok:
-            raise Exception(url + ' does not exist')
+            raise InvaliRepoMD(url + ' does not exist')
 
         fn = os.path.join(target_dir, os.path.basename(location))
         f = open(fn, 'w+b')
@@ -132,11 +134,11 @@ def parse_repomd(repo, baseurl, target_dir, force = False):
 
         fchksum = solv.Chksum(chksum.type)
         if not fchksum:
-            raise Exception("unknown checksum")
+            raise InvaliRepoMD("unknown checksum")
             return False
         fchksum.add_fd(f.fileno())
         if fchksum != chksum:
-            raise Exception('checksums do not match: got %s, expected %s'%(fchksum, chksum))
+            raise InvaliRepoMD('checksums do not match: got %s, expected %s'%(fchksum, chksum))
 
         os.lseek(f.fileno(), 0, os.SEEK_SET)
 
@@ -239,11 +241,16 @@ class Deptool(object):
             name = config.sections()[0]
             if repos == None and config.get(name, 'enabled') != '1':
                 continue
+            fn = solv_file_name(self.context, config, name)
+            if not os.path.exists(fn):
+                raise DeptoolException('repo cache for "%s" does not exist. Need to refresh first?'%name)
             repo = self.pool.add_repo(name)
-            repo.add_solv(solv_file_name(self.context, config, name))
+            r = repo.add_solv(fn)
+            if not r:
+                raise DeptoolException('failed to add repo %s'%name)
             if config.has_option(name, 'priority'):
                 repo.priority = config.getint(name, 'priority')
-            logger.debug("add repo %s", name)
+            logger.debug("added repo %s", name)
 
     def _add_system_repo(self):
         solvfile = '/var/cache/zypp/solv/@System/solv'
@@ -571,7 +578,7 @@ class Deptool(object):
 
         return result
 
-    def refresh_repos(self, context = None):
+    def refresh_repos(self, context = None, force = False, repos = None):
         if context is None:
             context = self.context
         if context is None:
@@ -579,10 +586,10 @@ class Deptool(object):
 
         logger.info('refreshing %s', context)
 
-        for config in self._read_repos(context):
+        for config in self._read_repos(context, repos):
             name = config.sections()[0]
             logger.info(' updating repo %s', name)
-            update_repo_cache(context, config, name)
+            update_repo_cache(context, config, name, force)
 
 class CommandLineInterface(cmdln.Cmdln):
     def __init__(self, *args, **kwargs):
@@ -859,8 +866,12 @@ class CommandLineInterface(cmdln.Cmdln):
                 if opts.size:
                     print("%s TOTAL" % (result['size']))
 
+    @cmdln.option("-f", "--force", action="store_true",
+                  help="don't check timestamp")
     @cmdln.option("-a", "--all", action="store_true",
                   help="refresh all")
+    @cmdln.option("-r", dest="repo", action="append",
+                  help="repo to refresh")
     def do_ref(self, subcmd, opts):
         """${cmd_name}: refresh repos
 
@@ -869,10 +880,10 @@ class CommandLineInterface(cmdln.Cmdln):
         """
 
         if self.d.context:
-            self.d.refresh_repos()
+            self.d.refresh_repos(None, opts.force, opts.repo)
         else:
             for c in self.d.context_list():
-                self.d.refresh_repos(c)
+                self.d.refresh_repos(c, opts.force, opts.repo)
 
 if __name__ == "__main__":
     app = CommandLineInterface()
