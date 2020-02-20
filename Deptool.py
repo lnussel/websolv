@@ -6,6 +6,7 @@ import sys
 import re
 import logging
 import cmdln
+import time
 
 from fnmatch import fnmatch
 from configparser import SafeConfigParser
@@ -17,7 +18,7 @@ import gzip
 import io
 from urllib.parse import urljoin
 # TODO
-#from xdg.BaseDirectory import save_cache_path
+from xdg.BaseDirectory import save_cache_path, load_config_paths
 
 DATA_DIR = os.path.dirname(os.path.realpath(__file__))
 
@@ -41,36 +42,57 @@ class PackageNotFound(DeptoolException):
 def fqpn(s):
     return '{}-{}.{}'.format(s.name, s.evr, s.arch)
 
+
+def solv_file_dir(context, config, name):
+    return save_cache_path('opensuse.org', 'deptool', 'repodata', context, 'solv', name)
+
+def solv_file_name(context, config, name):
+    return os.path.join(solv_file_dir(context, config, name), 'solv')
+
 # courtesy of pkglistgen
-def dump_solv(fn, name, baseurl):
+def update_repo_cache(context, config, name, force = False):
     pool = solv.Pool()
     pool.setarch()
+
+    raw_dir = save_cache_path('opensuse.org', 'deptool', 'repodata', context, 'raw', name)
+    if not os.path.exists(raw_dir):
+        os.makedirs(raw_dir)
 
     # XXX: we should check if the repodata is current when updating it to avoid
     # useless regenerating of solv files
     repo = pool.add_repo(name)
-    if not parse_repomd(repo, baseurl):
+
+    baseurl = config[name]['baseurl']
+    if not parse_repomd(repo, baseurl, raw_dir, force):
         raise Exception('no repomd in ' + baseurl)
 
     repo.create_stubs()
 
-    if not os.path.exists(os.path.dirname(fn)):
-        os.makedirs(os.path.dirname(fn))
-    ofh = solv.xfopen(fn+".new", 'w')
+    solv_dir = solv_file_dir(context, config, name)
+    if not os.path.exists(solv_dir):
+        os.makedirs(solv_dir)
+
+    solv_file = solv_file_name(context, config, name)
+    ofh = solv.xfopen(solv_file+".new", 'w')
     repo.write(ofh)
     ofh.flush()
-    os.rename(fn+'.new', fn)
-    logger.debug('wrote %s', fn)
+    os.rename(solv_file+'.new', solv_file)
+    logger.debug('wrote %s', solv_file)
 
-    return fn
+def parse_repomd(repo, baseurl, target_dir, force = False):
 
-def parse_repomd(repo, baseurl):
+    repomd_fn = os.path.join(target_dir, 'repomd.xml')
+    headers = {}
+    if os.path.exists(repomd_fn):
+        headers['If-Modified-Since'] = time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.gmtime(os.path.getmtime(repomd_fn)))
     url = urljoin(baseurl, 'repodata/repomd.xml')
-    repomd = requests.get(url)
+    repomd = requests.get(url, headers = headers)
+    if repomd.status_code == requests.codes.not_modified:
+        return True
     if repomd.status_code != requests.codes.ok:
         return False
 
-    f = tempfile.TemporaryFile()
+    f = open(repomd_fn + '.new', 'w+b')
     f.write(repomd.content)
     f.flush()
     os.lseek(f.fileno(), 0, os.SEEK_SET)
@@ -92,6 +114,9 @@ def parse_repomd(repo, baseurl):
         return (None, None)
 
     location, chksum = find(repo, 'primary')
+    logger.debug('location %s', location)
+    if location is None:
+        raise DeptoolException('missing location in repomd.xml')
 
     url = urljoin(baseurl, location)
     logger.info(url)
@@ -99,7 +124,8 @@ def parse_repomd(repo, baseurl):
         if primary.status_code != requests.codes.ok:
             raise Exception(url + ' does not exist')
 
-        f = tempfile.TemporaryFile()
+        fn = os.path.join(target_dir, os.path.basename(location))
+        f = open(fn, 'w+b')
         f.write(primary.content)
         f.flush()
         os.lseek(f.fileno(), 0, os.SEEK_SET)
@@ -113,14 +139,10 @@ def parse_repomd(repo, baseurl):
             raise Exception('checksums do not match: got %s, expected %s'%(fchksum, chksum))
 
         os.lseek(f.fileno(), 0, os.SEEK_SET)
-        # yeah kind of silly
-        if (url.endswith('.gz')):
-            os.ftruncate(f.fileno(), 0)
-            f.write(gzip.GzipFile(fileobj=io.BytesIO(primary.content)).read())
-            f.flush()
-            os.lseek(f.fileno(), 0, os.SEEK_SET)
 
-        repo.add_rpmmd(solv.xfopen_fd(None, f.fileno()), None, 0)
+        repo.add_rpmmd(solv.xfopen_fd(fn if fn.endswith('.gz') else None, f.fileno()), None, 0)
+
+        os.rename(repomd_fn + '.new', repomd_fn)
         return True
 
     return False
@@ -188,7 +210,6 @@ class Deptool(object):
     def _read_repos(self, context, repos = None):
 
         repodir = DATA_DIR + "/deptool/%s/repos"%context
-        solvfile = DATA_DIR + '/deptool/%s/.cache/solv/%%s.solv'%context
 
         if repos is None:
             if os.path.exists(repodir):
@@ -210,7 +231,6 @@ class Deptool(object):
                 logger.error("missing section {} in {}".format(name, r))
                 continue
 
-            config[name]['.solv'] = solvfile % name
             yield config
 
     def add_repos(self, repos = None):
@@ -220,10 +240,10 @@ class Deptool(object):
             if repos == None and config.get(name, 'enabled') != '1':
                 continue
             repo = self.pool.add_repo(name)
-            repo.add_solv(config[name]['.solv'])
+            repo.add_solv(solv_file_name(self.context, config, name))
             if config.has_option(name, 'priority'):
                 repo.priority = config.getint(name, 'priority')
-            logger.debug("add repo %s: %s", name, config[name]['.solv'])
+            logger.debug("add repo %s", name)
 
     def _add_system_repo(self):
         solvfile = '/var/cache/zypp/solv/@System/solv'
@@ -562,7 +582,7 @@ class Deptool(object):
         for config in self._read_repos(context):
             name = config.sections()[0]
             logger.info(' updating repo %s', name)
-            dump_solv(config[name]['.solv'], name, config[name]['baseurl'])
+            update_repo_cache(context, config, name)
 
 class CommandLineInterface(cmdln.Cmdln):
     def __init__(self, *args, **kwargs):
