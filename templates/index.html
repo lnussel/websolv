@@ -6,216 +6,215 @@
 {% endblock %}
 {% block content %}
 {{ super() }}
-	<div class="jumbotron">
-	  <h1 class="display-4" id="headline">Dependency Inspector</h1>
-	</div>
+<div class="jumbotron">
+  <h1 class="display-4" id="headline">Dependency Inspector</h1>
+</div>
 
-  <div class="card">
-    <div class="card-body">
-      <form>
-        <div class="form-row">
-          <div class="col">
-            <div class="input-group mb-3">
-              <div class="input-group-prepend">
-                <label class="input-group-text" for="distro_select">Distribution</label>
-              </div>
-              <select class="custom-select" id="distro_select">
-              </select>
+<div class="card mb-3">
+  <div class="card-body">
+    <form>
+      <div class="form-row">
+        <div class="col">
+          <div class="input-group mb-3">
+            <div class="input-group-prepend">
+              <label class="input-group-text" for="distro_select">Distribution</label>
             </div>
-          </div>
-          <div class="col">
-            <div class="input-group mb-3">
-              <div class="input-group-prepend">
-                <label class="input-group-text" for="arch_select">Architecture</label>
-              </div>
-              <select class="custom-select" id="arch_select">
-              </select>
-            </div>
+            <select class="custom-select" id="distro_select">
+            </select>
           </div>
         </div>
-        <div class="container">
-          <div class="row row-cols-4" id="repolist">
-            <div class="col form-group custom-control custom-switch" style="display:none;">
-              <input type="checkbox" class="custom-control-input">
-              <label class="custom-control-label">repo-foo</label>
+        <div class="col">
+          <div class="input-group mb-3">
+            <div class="input-group-prepend">
+              <label class="input-group-text" for="arch_select">Architecture</label>
             </div>
+            <select class="custom-select" id="arch_select">
+            </select>
           </div>
         </div>
-      </form>
+      </div>
+      <div class="container">
+        <div class="row row-cols-4" id="repolist">
+          <div class="col form-group custom-control custom-switch" style="display:none;">
+            <input type="checkbox" class="custom-control-input">
+            <label class="custom-control-label">repo-foo</label>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<nav>
+  <div class="nav nav-tabs" id="page-function-tabs" role="tablist">
+    <a class="nav-link" id="solve-tab" data-toggle="pill" href="#solve" role="tab" aria-controls="home" aria-selected="true">Solve</a>
+    <a class="nav-link" id="search-tab" data-toggle="pill" href="#search" role="tab" aria-controls="profile" aria-selected="false">Search</a>
+    <!--
+      <a class="nav-link" id="settings-tab" data-toggle="pill" href="#settings" role="tab" aria-controls="settings" aria-selected="false">Settings</a>
+    -->
+  </div>
+</nav>
+
+<div class="tab-content" id="tabContent">
+  <div class="tab-pane fade show active" id="solve" role="tabpanel" aria-labelledby="solve-tab">
+    <div class="card">
+      <div class="card-body">
+        <form id="solveform">
+          <div class="form-group form-check">
+            <input type="checkbox" class="form-check-input" id="solve_job_norecommends">
+            <label class="form-check-label" for="solve_job_norecommends">no recomends</label>
+          </div>
+          <div class="input-group mb-3 solve_job_group job_template">
+            <div class="input-group-prepend">
+              <button class="btn btn-outline-secondary dropdown-toggle solve_job_button" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Install</button>
+              <div class="dropdown-menu">
+                <a class="dropdown-item" href="#">Install</a>
+                <a class="dropdown-item" href="#">Lock</a>
+              </div>
+            </div>
+            <input type="text" class="form-control solve_job_text" aria-label="Text input with dropdown button">
+            <div class="input-group-append">
+              <button type="button" class="btn btn-outline-dark solve_job_trash_button"><i class="fa fa-trash"></i></button>
+              <button type="button" class="btn btn-outline-dark solve_job_search_button"><i class="fa fa-search"></i></button>
+            </div>
+          </div>
+
+          <button type="button" class="btn btn-secondary" id="btn-add"><i class="fa fa-plus-square"></i></button>
+          <button type="button" class="btn btn-success" id="btn-solve">Solve!</button>
+        </form>
+      </div>
+    </div>
+    <div class="list-group" id="solv_problems" style="display:none;">
+    </div>
+    <div class="spinner-border text-secondary" id="solv_spinner" role="status" style="display:none;"><span class="sr-only">Solving...</span></div>
+    <div class="card" id="solv_result" style="display:none;">
+      <div class="card-body">
+        <div class="dropdown" id="solv_choices">
+          <button class="btn btn-sm btn-outline-secondary dropdown-toggle" id="solv_choices_button" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Choices</button>
+          <div class="dropdown-menu" id="solv_choices_menu" aria-labelledby="solv_choices_button">
+          </div>
+        </div>
+        <div id="solv_result_packagelist">
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="tab-pane fade" id="search" role="tabpanel" aria-labelledby="search-tab">
+    <div class="card">
+      <div class="card-body">
+        <div class="input-group mb-3">
+          <input type="text" class="form-control" aria-label="Package name" id="search-text" placeholder="search text">
+          <div class="input-group-append">
+            <button class="btn btn-primary" type="button" id="btn-search">Search</button>
+          </div>
+        </div>
+        <div id='search_result'>
+        </div>
+      </div>
     </div>
   </div>
 
-  <div class="row">
-    <div class="col-3">
-      <div class="nav flex-column nav-pills" id="page-function-tabs" role="tablist" aria-orientation="vertical">
-        <a class="nav-link" id="solve-tab" data-toggle="pill" href="#solve" role="tab" aria-controls="home" aria-selected="true">Solve</a>
-        <a class="nav-link" id="search-tab" data-toggle="pill" href="#search" role="tab" aria-controls="profile" aria-selected="false">Search</a>
-<!--
-        <a class="nav-link" id="settings-tab" data-toggle="pill" href="#settings" role="tab" aria-controls="settings" aria-selected="false">Settings</a>
--->
+  <!--
+    <div class="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab">
+    <div class="card">
+    <div class="card-body">
+    </div>
+    </div>
+    </div>
+  -->
+</div>
+
+<div aria-live="polite" aria-atomic="true" class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
+  <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-delay="2000">
+    <div class="toast-header">
+      <i class="fa fa-exclamation rounded text-danger mr-2"></i>
+      <strong class="mr-auto">Bootstrap</strong>
+      <button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
+    <div class="toast-body">
+      Hello, world! This is a toast message.
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="solvable_info" tabindex="-1" role="dialog" aria-labelledby="solvable_info_title" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="solvable_info_title">XXX</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="spinner-border text-secondary" id="solvable_info_spinner" role="status" style="display:none;"><span class="sr-only">Processing...</span></div>
+        <table id='solvable_props' class="table table-striped table-hover" style="display:none;">
+          <thead>
+            <tr>
+              <th>Property</th>
+              <th>Value</th>
+            </tr>
+          </thead>
+          <tbody>
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal" id="solvable_info_close">Close</button>
       </div>
     </div>
+  </div>
+</div>
 
-    <div class="col-9">
-      <div class="tab-content" id="tabContent">
-        <div class="tab-pane fade show active" id="solve" role="tabpanel" aria-labelledby="solve-tab">
-          <div class="card">
-            <div class="card-body">
-              <form id="solveform">
-                <div class="form-group form-check">
-                  <input type="checkbox" class="form-check-input" id="solve_job_norecommends">
-                  <label class="form-check-label" for="solve_job_norecommends">no recomends</label>
-                </div>
-                <div class="input-group mb-3 solve_job_group job_template">
-                  <div class="input-group-prepend">
-                    <button class="btn btn-outline-secondary dropdown-toggle solve_job_button" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Install</button>
-                    <div class="dropdown-menu">
-                      <a class="dropdown-item" href="#">Install</a>
-                      <a class="dropdown-item" href="#">Lock</a>
-                    </div>
-                  </div>
-                  <input type="text" class="form-control solve_job_text" aria-label="Text input with dropdown button">
-                  <div class="input-group-append">
-                    <button type="button" class="btn btn-outline-dark solve_job_trash_button"><i class="fa fa-trash"></i></button>
-                    <button type="button" class="btn btn-outline-dark solve_job_search_button"><i class="fa fa-search"></i></button>
-                  </div>
-                </div>
+<div class="modal fade" id="dep_info" tabindex="-1" role="dialog" aria-labelledby="dep_info_title" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="dep_info_title">XXX</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="spinner-border text-secondary" id="dep_info_spinner" role="status" style="display:none;"><span class="sr-only">Processing...</span></div>
+        <div id="dep_info_props"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal" id="dep_info_close">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-                <button type="button" class="btn btn-secondary" id="btn-add"><i class="fa fa-plus-square"></i></button>
-                <button type="button" class="btn btn-success" id="btn-solve">Solve!</button>
-              </form>
-            </div>
-          </div>
-          <div class="list-group" id="solv_problems" style="display:none;">
-          </div>
-          <div class="spinner-border text-secondary" id="solv_spinner" role="status" style="display:none;"><span class="sr-only">Solving...</span></div>
-          <div class="card" id="solv_result" style="display:none;">
-            <div class="card-body">
-              <div class="dropdown" id="solv_choices">
-                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" id="solv_choices_button" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Choices</button>
-                <div class="dropdown-menu" id="solv_choices_menu" aria-labelledby="solv_choices_button">
-                </div>
-              </div>
-              <div id="solv_result_packagelist">
-              </div>
-            </div>
-          </div>
+
+<div class="modal fade" id="whatprovides_dialog" tabindex="-1" role="dialog" aria-labelledby="whatprovides_dialog_title" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="whatprovides_dialog_title">XXX</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="spinner-border text-secondary" id="whatprovides_dialog_spinner" role="status" style="display:none;"><span class="sr-only">Processing...</span></div>
+        <div class="list-group" style="display:none;">
         </div>
-        <div class="tab-pane fade" id="search" role="tabpanel" aria-labelledby="search-tab">
-          <div class="card">
-            <div class="card-body">
-              <div class="input-group mb-3">
-                <input type="text" class="form-control" aria-label="Package name" id="search-text" placeholder="search text">
-                <div class="input-group-append">
-                  <button class="btn btn-primary" type="button" id="btn-search">Search</button>
-                </div>
-              </div>
-              <div id='search_result'>
-              </div>
-            </div>
-          </div>
-        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal" id="whatprovides_dialog_close">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-        <!--
-        <div class="tab-pane fade" id="settings" role="tabpanel" aria-labelledby="settings-tab">
-          <div class="card">
-            <div class="card-body">
-            </div>
-          </div>
-        </div>
-        -->
-
-	<div aria-live="polite" aria-atomic="true" class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
-	    <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-delay="2000">
-	      <div class="toast-header">
-		<i class="fa fa-exclamation rounded text-danger mr-2"></i>
-		<strong class="mr-auto">Bootstrap</strong>
-		<button type="button" class="ml-2 mb-1 close" data-dismiss="toast" aria-label="Close">
-		  <span aria-hidden="true">&times;</span>
-		</button>
-	      </div>
-	      <div class="toast-body">
-		Hello, world! This is a toast message.
-	      </div>
-	  </div>
-	</div>
-
-	<div class="modal fade" id="solvable_info" tabindex="-1" role="dialog" aria-labelledby="solvable_info_title" aria-hidden="true">
-	  <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
-	    <div class="modal-content">
-	      <div class="modal-header">
-		<h5 class="modal-title" id="solvable_info_title">XXX</h5>
-		<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-		  <span aria-hidden="true">&times;</span>
-		</button>
-	      </div>
-	      <div class="modal-body">
-		<div class="spinner-border text-secondary" id="solvable_info_spinner" role="status" style="display:none;"><span class="sr-only">Processing...</span></div>
-		<table id='solvable_props' class="table table-striped table-hover" style="display:none;">
-		  <thead>
-		    <tr>
-		      <th>Property</th>
-		      <th>Value</th>
-		    </tr>
-		  </thead>
-		  <tbody>
-		  </tbody>
-		</table>
-	      </div>
-	      <div class="modal-footer">
-		<button type="button" class="btn btn-primary" data-dismiss="modal" id="solvable_info_close">Close</button>
-	      </div>
-	    </div>
-	  </div>
-	</div>
-
-	<div class="modal fade" id="dep_info" tabindex="-1" role="dialog" aria-labelledby="dep_info_title" aria-hidden="true">
-	  <div class="modal-dialog modal-xl modal-dialog-centered" role="document">
-	    <div class="modal-content">
-	      <div class="modal-header">
-		<h5 class="modal-title" id="dep_info_title">XXX</h5>
-		<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-		  <span aria-hidden="true">&times;</span>
-		</button>
-	      </div>
-              <div class="modal-body">
-		<div class="spinner-border text-secondary" id="dep_info_spinner" role="status" style="display:none;"><span class="sr-only">Processing...</span></div>
-                <div id="dep_info_props"></div>
-              </div>
-	      <div class="modal-footer">
-		<button type="button" class="btn btn-primary" data-dismiss="modal" id="dep_info_close">Close</button>
-	      </div>
-	    </div>
-	  </div>
-	</div>
-
-
-	<div class="modal fade" id="whatprovides_dialog" tabindex="-1" role="dialog" aria-labelledby="whatprovides_dialog_title" aria-hidden="true">
-	  <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-	    <div class="modal-content">
-	      <div class="modal-header">
-		<h5 class="modal-title" id="whatprovides_dialog_title">XXX</h5>
-		<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-		  <span aria-hidden="true">&times;</span>
-		</button>
-	      </div>
-	      <div class="modal-body">
-		<div class="spinner-border text-secondary" id="whatprovides_dialog_spinner" role="status" style="display:none;"><span class="sr-only">Processing...</span></div>
-		<div class="list-group" style="display:none;">
-		</div>
-	      </div>
-	      <div class="modal-footer">
-		<button type="button" class="btn btn-primary" data-dismiss="modal" id="whatprovides_dialog_close">Close</button>
-	      </div>
-	    </div>
-	  </div>
-	</div>
-
-	<div id="ep_distribution" url="{{ url_for('distribution') }}"></div>
-	<div id="ep_solve" url="{{ url_for('solve') }}"></div>
-	<div id="ep_info" url="{{ url_for('info') }}"></div>
-	<div id="ep_whatprovides" url="{{ url_for('whatprovides') }}"></div>
-	<div id="ep_search" url="{{ url_for('search') }}"></div>
-	<div id="ep_depinfo" url="{{ url_for('depinfo_json') }}"></div>
+<div id="ep_distribution" url="{{ url_for('distribution') }}"></div>
+<div id="ep_solve" url="{{ url_for('solve') }}"></div>
+<div id="ep_info" url="{{ url_for('info') }}"></div>
+<div id="ep_whatprovides" url="{{ url_for('whatprovides') }}"></div>
+<div id="ep_search" url="{{ url_for('search') }}"></div>
+<div id="ep_depinfo" url="{{ url_for('depinfo_json') }}"></div>
 
 {% endblock %}
