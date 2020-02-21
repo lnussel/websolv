@@ -76,8 +76,12 @@ def update_repo_cache(context, config, name, force = False):
 
     solv_file = solv_file_name(context, config, name)
     ofh = solv.xfopen(solv_file+".new", 'w')
-    repo.write(ofh)
+    if not repo.write(ofh):
+        raise InvaliRepoMD('failed to write solv file')
     ofh.flush()
+    stb = os.stat(solv_file+'.new')
+    if stb.st_size <= 50:
+        raise InvaliRepoMD('solv too small, %s bytes', stb.st_size)
     os.rename(solv_file+'.new', solv_file)
     logger.debug('wrote %s', solv_file)
 
@@ -152,8 +156,9 @@ def parse_repomd(repo, baseurl, target_dir, force = False):
 
 class Deptool(object):
 
-    def __init__(self, context = None):
-        self.arch = None
+    def __init__(self, context = None, arch = None, repos = None):
+        self.arch = arch
+        self.repos = repos if repos else None
         self.context = self._context_validate(context)
         self.with_system = None
         self.pool = None
@@ -201,6 +206,8 @@ class Deptool(object):
         self.pool = solv.Pool()
         self.pool.setarch(self.arch)
 
+        if repos is None:
+            repos = self.repos
         self.add_repos(repos)
 
         if self.with_system:
@@ -462,10 +469,10 @@ class Deptool(object):
 
         return result
 
-    def search(self, string, repos = None):
+    def search(self, string):
 
         if not self.pool:
-            self.prepare_pool(repos)
+            self.prepare_pool()
 
         result = {}
 

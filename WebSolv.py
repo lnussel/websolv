@@ -106,11 +106,13 @@ def install(context):
 def info():
     context = request.args.get('context', None)
     arch = request.args.get('arch', None)
+    repos = request.args.getlist('repo[]')
+
     package = request.args.get('package', None)
     if not (context and package):
         raise KeyError("missing parameters")
 
-    d = Deptool.Deptool(context=context)
+    d = Deptool.Deptool(context=context, arch=arch, repos=repos)
     if arch:
         d.arch = arch
     result = d.info(package)
@@ -121,16 +123,14 @@ def info():
 def search():
     context = request.args.get('context', None)
     arch = request.args.get('arch', None)
-    text = request.args.get('text', None)
     repos = request.args.getlist('repo[]')
+
+    text = request.args.get('text', None)
     if not (context and text):
         raise KeyError("missing parameters")
 
-    d = Deptool.Deptool(context=context)
-    if arch:
-        d.arch = arch
-    app.logger.info(repos)
-    result = d.search(text, repos)
+    d = Deptool.Deptool(context=context, arch=arch, repos=repos)
+    result = d.search(text)
 
     return jsonify(result)
 
@@ -138,11 +138,13 @@ def search():
 @app.route('/whatprovides')
 def whatprovides():
     context = request.args.get('context', None)
+    arch = request.args.get('arch', None)
+    repos = request.args.getlist('repo[]')
     relation = request.args.get('relation', None)
     if not (context and relation):
         raise KeyError("missing relation parameter")
 
-    d = Deptool.Deptool(context=context)
+    d = Deptool.Deptool(context=context, arch=arch, repos=repos)
     result = d.whatprovides(relation)
 
     return jsonify(result)
@@ -150,11 +152,14 @@ def whatprovides():
 @app.route('/rdeps')
 def rdeps_json():
     context = request.args.get('context', None)
+    arch = request.args.get('arch', None)
+    repos = request.args.getlist('repo[]')
+
     solvable = request.args.get('solvable', None)
     if not (context and solvable):
         raise KeyError("missing parameters")
 
-    d = Deptool.Deptool(context=context)
+    d = Deptool.Deptool(context=context, arch=arch, repos=repos)
     result = d.rdeps(solvable)
 
     return jsonify(result)
@@ -162,11 +167,14 @@ def rdeps_json():
 @app.route('/depinfo')
 def depinfo_json():
     context = request.args.get('context', None)
+    arch = request.args.get('arch', None)
+    repos = request.args.getlist('repo[]')
+
     relation = request.args.get('relation', None)
     if not (context and relation):
         raise KeyError("missing parameters")
 
-    d = Deptool.Deptool(context=context)
+    d = Deptool.Deptool(context=context, arch=arch, repos=repos)
     result = d.depinfo(relation)
 
     return jsonify(result)

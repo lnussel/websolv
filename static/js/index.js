@@ -233,7 +233,7 @@ function show_alternatives(relation) {
   $('#whatprovides_dialog').modal('show');
 
   var ep_whatprovides = $('#ep_whatprovides').attr('url');
-  $.getJSON(ep_whatprovides + '?' + $.param({'context': get_distro(), 'relation': relation}), function(info, status) {
+  $.getJSON(ep_whatprovides + '?' + $.param({'context': get_distro(), 'relation': relation, 'repo': form_get_repos()}), function(info, status) {
     var seen = {};
     $.each(info, function(i, d) {
       var solvable = dict2solvables(d)[0];
@@ -435,7 +435,7 @@ function solvable_info_clicked(e) {
     }
 
 
-  $.getJSON(ep_info + '?' + $.param({'context': get_distro(), 'arch': get_arch(), 'package': name}), function(info, status) {
+  $.getJSON(ep_info + '?' + $.param({'context': get_distro(), 'arch': get_arch(), 'package': name, 'repo': form_get_repos()}), function(info, status) {
     var $body = $('#solvable_props tbody');
     $body.empty();
     // XXX: we secrety take the first one
@@ -456,7 +456,7 @@ function dep_info_clicked(e) {
 
   var ep_depinfo = $('#ep_depinfo').attr('url');
 
-  $.getJSON(ep_depinfo + '?' + $.param({'context': get_distro(), 'relation': name}), function(info, status) {
+  $.getJSON(ep_depinfo + '?' + $.param({'context': get_distro(), 'relation': name, 'repo': form_get_repos()}), function(info, status) {
     var $content = $('#dep_info_props');
     $content.empty();
     var relations = Object.getOwnPropertyNames(info);
