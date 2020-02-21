@@ -126,6 +126,14 @@ function start() {
       update_arch();
     }
 
+    $('#btn-refresh').on('click', function() {
+      var ep_refresh = $('#ep_refresh').attr('url');
+
+      $.post(ep_refresh + '?' + $.param({'context': get_distro()}), '', function(info, status) {
+        show_info_popup('Repo refresh', info['message']);
+      }, 'json');
+    });
+
     $('#btn-add').on('click', function() { add_new_job() });
 
     $('#btn-solve').on('click', function () { solve() });
@@ -150,11 +158,24 @@ function start() {
   });
 }
 
-function show_error_popup(title, text) {
-  var $dialog = $('.toast');
+function _show_popup($dialog, title, text) {
   $dialog.find('strong').text(title);
   $dialog.find('.toast-body').text(text);
   $dialog.toast('show');
+}
+
+function show_error_popup(title, text) {
+  var $dialog = $('.toast');
+  $dialog.find('.toast-header i').removeClass('fa-exclamation fa-info-circle').addClass('fa-exclamation');
+  $dialog.find('.toast-header i').removeClass('text-danger text-success').addClass('text-danger');
+  _show_popup($dialog, title, text);
+}
+
+function show_info_popup(title, text) {
+  var $dialog = $('.toast');
+  $dialog.find('.toast-header i').removeClass('fa-exclamation fa-info-circle').addClass('fa-info-circle');
+  $dialog.find('.toast-header i').removeClass('text-danger text-success').addClass('text-success');
+  _show_popup($dialog, title, text);
 }
 
 function form_get_jobs() {

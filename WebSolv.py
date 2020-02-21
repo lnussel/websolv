@@ -139,7 +139,7 @@ def search():
 def whatprovides():
     context = request.args.get('context', None)
     relation = request.args.get('relation', None)
-    if not relation:
+    if not (context and relation):
         raise KeyError("missing relation parameter")
 
     d = Deptool.Deptool(context=context)
@@ -151,8 +151,8 @@ def whatprovides():
 def rdeps_json():
     context = request.args.get('context', None)
     solvable = request.args.get('solvable', None)
-    if not solvable:
-        raise KeyError("missing relation parameter")
+    if not (context and solvable):
+        raise KeyError("missing parameters")
 
     d = Deptool.Deptool(context=context)
     result = d.rdeps(solvable)
@@ -163,13 +163,25 @@ def rdeps_json():
 def depinfo_json():
     context = request.args.get('context', None)
     relation = request.args.get('relation', None)
-    if relation is None:
-        raise KeyError("missing relation parameter")
+    if not (context and relation):
+        raise KeyError("missing parameters")
 
     d = Deptool.Deptool(context=context)
     result = d.depinfo(relation)
 
     return jsonify(result)
+
+@app.route('/refresh', methods=['POST'])
+def refresh():
+    context = request.args.get('context', None)
+    if not context:
+        raise KeyError("missing parameters")
+
+    d = Deptool.Deptool(context=context)
+    d.refresh_repos()
+
+    return jsonify({'message': 'ok'})
+
 
 @app.route('/info/<string:context>/<string:package>')
 def info_path(context, package):
