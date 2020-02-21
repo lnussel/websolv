@@ -1,0 +1,8 @@
+[repo-update-non-oss]
+name=openSUSE-Leap-15.1-Update-Non-Oss
+enabled=1
+autorefresh=1
+baseurl=http://download.opensuse.org/update/leap/15.1/non-oss/
+path=/
+type=rpm-md
+keeppackages=0

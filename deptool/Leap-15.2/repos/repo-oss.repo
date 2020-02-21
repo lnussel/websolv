@@ -1,7 +1,7 @@
 [repo-oss]
-name=Leap 15.2 OSS
+name=Main Repository
 enabled=1
-autorefresh=1
+autorefresh=0
 baseurl=http://download.opensuse.org/distribution/leap/15.2/repo/oss/
 path=/
 type=rpm-md
