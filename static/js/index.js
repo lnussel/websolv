@@ -143,7 +143,10 @@ function start() {
 
       $.post(ep_refresh + '?' + $.param({'context': get_distro()}), '', function(info, status) {
         show_info_popup('Repo refresh', info['message']);
-      }, 'json');
+      }, 'json')
+      .fail(function(xhr, textStatus, error) {
+        show_error_popup(error, JSON.parse(xhr.responseText)['message']);
+      });
     });
 
     $('#btn-add').on('click', function() { add_new_job() });

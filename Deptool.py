@@ -65,7 +65,12 @@ def update_repo_cache(context, config, name, force = False):
     repo = pool.add_repo(name)
 
     baseurl = config[name]['baseurl']
-    if not parse_repomd(repo, baseurl, raw_dir, force):
+    ret = parse_repomd(repo, baseurl, raw_dir, force)
+
+    if ret is None:
+        return
+
+    elif ret != True:
         raise InvaliRepoMD('no repomd in ' + baseurl)
 
     repo.create_stubs()
@@ -81,7 +86,7 @@ def update_repo_cache(context, config, name, force = False):
     ofh.flush()
     stb = os.stat(solv_file+'.new')
     if stb.st_size <= 50:
-        raise InvaliRepoMD('solv too small, %s bytes', stb.st_size)
+        raise InvaliRepoMD('{}: solv too small, {} bytes'.format(name, stb.st_size))
     os.rename(solv_file+'.new', solv_file)
     logger.debug('wrote %s', solv_file)
 
@@ -94,7 +99,7 @@ def parse_repomd(repo, baseurl, target_dir, force = False):
     url = urljoin(baseurl, 'repodata/repomd.xml')
     repomd = requests.get(url, headers = headers)
     if repomd.status_code == requests.codes.not_modified:
-        return True
+        return None
     if repomd.status_code != requests.codes.ok:
         return False
 
@@ -592,11 +597,14 @@ class Deptool(object):
             raise DeptoolException("missing context");
 
         logger.info('refreshing %s', context)
+        info = self.context_info(context)
+        if info.get('refresh', '1') in ('0', 'False'):
+            raise DeptoolException("refresh disabled for {}".format(context))
+            return
 
-        for config in self._read_repos(context, repos):
-            name = config.sections()[0]
+        for name in info['repos'].keys():
             logger.info(' updating repo %s', name)
-            update_repo_cache(context, config, name, force)
+            update_repo_cache(context, info['repos'], name, force)
 
 class CommandLineInterface(cmdln.Cmdln):
     def __init__(self, *args, **kwargs):
