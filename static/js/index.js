@@ -1,6 +1,7 @@
 $(document).ready(function() {
 var $JOB_TEMPLATE;
 var $REPO_TEMPLATE;
+var CURRENT_DISTRO;
 
 function get_distro() {
    return $('#distro_select').val();
@@ -32,6 +33,7 @@ function setup_distro(info) {
 
 
   if (info) {
+    CURRENT_DISTRO = info;
     $("#repolist").empty();
     var num_repos = 0;
     $.each(info['repos'], function(name, props) {
@@ -194,6 +196,13 @@ function show_info_popup(title, text) {
 function form_get_jobs() {
   var jobs = [];
   var err = false;
+
+  if (CURRENT_DISTRO['prefer']) {
+    CURRENT_DISTRO['prefer'].split(' ').forEach(function(i) {
+      jobs.push(['job', 'favor', 'name', i]);
+    });
+  }
+
   $('#solveform .solve_job_group').each(function(i){
     var jobtype = '';
     var name = '';

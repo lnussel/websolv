@@ -318,7 +318,7 @@ class Deptool(object):
                     self.pool.addfileprovides()
                     self.pool.createwhatprovides()
                     prepared = True
-                if tokens[1] == 'install' or tokens[1] == 'lock':
+                if tokens[1] in ('install', 'lock', 'favor'):
                     if tokens[2] == 'name':
                         n = str(tokens[3])
                         sel = self.pool.select(n, solv.Selection.SELECTION_NAME)
@@ -329,6 +329,8 @@ class Deptool(object):
                             jobs += sel.jobs(solv.Job.SOLVER_INSTALL)
                         elif tokens[1] == 'lock':
                             jobs += sel.jobs(solv.Job.SOLVER_LOCK)
+                        elif tokens[1] == 'favor':
+                            jobs += sel.jobs(solv.Job.SOLVER_FAVOR)
 
                         logger.debug("{} {}".format(tokens[1], n))
                     else:
