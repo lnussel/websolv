@@ -228,10 +228,6 @@ def depinfo(context):
 def awesome(filename):
     return send_from_directory('/usr/share/font-awesome-web', filename)
 
-@app.route('/favicon.ico')
-def favicon():
-    return app.send_static_file('favicon.ico')
-
 
 application = app
 if __name__ == '__main__':
