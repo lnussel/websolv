@@ -46,6 +46,12 @@ def fqpn(s):
 
 
 def solv_file_dir(context, config, name):
+    repofile = DATA_DIR + "/deptool/%s/repos/%s.repo"%(context, name)
+    # repo file can be link to a repo of another distro, reuse cache from there
+    if os.path.islink(repofile):
+        target = os.path.abspath(os.path.join(os.path.dirname(repofile), os.readlink(repofile)))
+        com = os.path.commonpath((repofile, target))
+        context = target[len(com)+1:].split(os.sep, 2)[0]
     return save_cache_path('opensuse.org', 'deptool', 'repodata', context, 'solv', name)
 
 def solv_file_name(context, config, name):
