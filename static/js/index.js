@@ -44,8 +44,20 @@ function setup_distro(info) {
     });
   }
 
+  $('#search_result').empty().hide();
   $('#solv_result').hide();
   $('#solv_spinner').hide();
+
+  var l = window.location.hash;
+  if (l == '#search' || l == '#solve') {
+    $(l + '-tab').tab('show');
+  } else if (l.startsWith('#info/')) {
+    show_solvable_info(l.substr(('#info/').length));
+  } else if (l.startsWith('#depinfo/')) {
+    show_dep_info(l.substr(('#depinfo/').length));
+  } else {
+    $('#search-tab').tab('show');
+  }
 }
 
 function add_new_job(name = null) {
@@ -146,15 +158,13 @@ function start() {
     });
 
     $('#page-function-tabs a[data-toggle="pill"]').on('shown.bs.tab', function (e) {
-      window.location.replace(e.target['href']);
+      // need to make sure the anchor doesn't match an existing one otherwise the page would scroll
+      window.location.replace(e.target['href'].replace('-pane', ''));
     });
 
-    var l = window.location.hash;
-    if (l == '#search' || l == '#solve') {
-      $(l + '-tab').tab('show');
-    } else {
-      $('#solve-tab').tab('show');
-    }
+    $('#dep_info').on('hidden.bs.modal', function() { window.history.back() });
+    $('#solvable_info').on('hidden.bs.modal', function() { window.history.back() });
+
   });
 }
 
@@ -389,12 +399,18 @@ function solve() {
 
 function solvable_info_clicked(e) {
   var name = e.target.getAttribute('title');
+  show_solvable_info(name);
+}
+
+function show_solvable_info(name) {
   $('#solvable_info_spinner').show();
   $('#solvable_props').hide();
   $('#solvable_info_title').text(name);
   $('#solvable_info').modal('show');
 
   var ep_info = $('#ep_info').attr('url');
+
+  window.location.hash = '#info/' + name;
 
   var solvable2table =  function($body, props) {
       $.each(props, function(k,v){
@@ -410,8 +426,8 @@ function solvable_info_clicked(e) {
                 .attr('title', relation)
                 .text(relation)
                 .on('click', function(e) {
+                  $('#solvable_info').one('hidden.bs.modal', function() { dep_info_clicked(e); });
                   $('#solvable_info').modal('hide');
-                  dep_info_clicked(e);
                 })).appendTo($list);
             });
           } else {
@@ -449,10 +465,16 @@ function solvable_info_clicked(e) {
 
 function dep_info_clicked(e) {
   var name = e.target.getAttribute('title');
+  show_dep_info(name);
+}
+
+function show_dep_info(name) {
   $('#dep_info_spinner').show();
   $('#dep_info_props').hide();
   $('#dep_info_title').text(name);
   $('#dep_info').modal('show');
+
+  window.location.hash = '#depinfo/' + name;
 
   var ep_depinfo = $('#ep_depinfo').attr('url');
 
@@ -516,8 +538,8 @@ function search() {
       var s = new Solvable(i, d);
       var $info_link = $('<button class="btn btn-link" data-toggle="tooltip" data-placement="bottom"></button>').attr('title', s.id).text(s.name).on('click', solvable_info_clicked);
       var $install_link = $('<button class="btn btn-link" data-toggle="tooltip" data-placement="bottom"></button>')
-        .attr('title', 'install')
-        .append($('<i class="fa fa-check"></i>'))
+        .attr('title', 'add to install set')
+        .append($('<i class="fa fa-plus-square"></i>'))
         .on('click', function(){
           // FIXME: we should actually fill the one where the search button was clicked
           var $input = $('#solveform .solve_job_text').last();
