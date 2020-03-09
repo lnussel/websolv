@@ -353,6 +353,21 @@ class Deptool(object):
                         solver.set_flag(SOLVERFLAGS[t], v)
                     else:
                         raise ParseError("invalid solverflag")
+
+            # namespace namespace:language(de) @SYSTEM
+            elif tokens[0] == 'namespace' and len(tokens) == 3 and tokens[2] == '@SYSTEM':
+                m = re.search(r'namespace:(language|filesystem)\(([^)]+)\)', tokens[1])
+                if m is None:
+                    raise ParseError('unknown namespace {}'.format(tokens[1]))
+                if not prepared:
+                    self.pool.addfileprovides()
+                    self.pool.createwhatprovides()
+                    prepared = True
+                if (m.group(1) == 'language'):
+                    ns = solv.NAMESPACE_LANGUAGE
+                elif (m.group(1) == 'filesystem'):
+                    ns = solv.NAMESPACE_FILESYSTEM
+                self.pool.set_namespaceproviders(ns, self.pool.Dep(m.group(2)), True)
             else:
                 raise ParseError("unkown instruction")
 
@@ -425,15 +440,12 @@ class Deptool(object):
         choices = []
         for s in trans.newsolvables():
             reason, rule = solver.describe_decision(s)
+            infos = []
             if reason == solv.Solver.SOLVER_REASON_WEAKDEP:
                 for v in solver.describe_weakdep_decision(s):
                     reason2, s2, dep = v
-                    target = s2
-                    if reason2 == solver.SOLVER_REASON_SUPPLEMENTED:
-                        target = s
-                    newsolvables.append((s, REASONS[reason], [[target, REASONS[reason2], dep.str()]]))
+                    infos.append((s2, REASONS[reason2], dep.str()))
             else:
-                infos = []
                 if rule:
                     rt2str = {}
                     for rt in dir(solver):
@@ -446,7 +458,7 @@ class Deptool(object):
                         infos.append((ri.solvable, rt2str[ri.type], ri.dep.str(), ri.othersolvable))
                         if (reason == solver.SOLVER_REASON_RESOLVE):
                             choices.append(ri.dep.str())
-                newsolvables.append((s, REASONS[reason], infos))
+            newsolvables.append((s, REASONS[reason], infos))
 
         result['newsolvables'] = newsolvables
         result['choices'] = choices
@@ -458,10 +470,11 @@ class Deptool(object):
     @classmethod
     def _solvable2dict(cls, s, deps = False):
         sattrs = [s for s in dir(solv) if s.startswith("SOLVABLE_")]
-        result = {}
+        result = { 'NAME': s.name, 'EVR': s.evr, 'ARCH': s.arch }
         for attr in sattrs:
             sid = getattr(solv, attr, 0)
-            result['repo'] = s.repo.name
+            if s.repo:
+                result['repo'] = s.repo.name
             # pretty stupid, just lookup strings and numbers
             value = s.lookup_str(sid)
             if value:

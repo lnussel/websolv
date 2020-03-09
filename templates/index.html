@@ -78,9 +78,28 @@
     <div class="card">
       <div class="card-body">
         <form id="solveform">
-          <div class="form-group form-check">
-            <input type="checkbox" class="form-check-input" id="solve_job_norecommends">
-            <label class="form-check-label" for="solve_job_norecommends">no recomends</label>
+          <button class="btn btn-sm btn-primary" type="button" data-toggle="collapse" data-target="#solver-options" aria-expanded="false" aria-controls="solver-options">
+            Options...
+          </button>
+          </p>
+          <div class="collapse" id="solver-options">
+            <div class="form-group form-check form-check-inline">
+              <input type="checkbox" class="form-check-input" id="solve_job_norecommends">
+              <label class="form-check-label" for="solve_job_norecommends">no recommends</label>
+            </div>
+            <div class="form-group form-check form-check-inline">
+              <input type="checkbox" class="form-check-input" id="solve_job_addalreadyrecommended" checked>
+              <label class="form-check-label" for="solve_job_addalreadyrecommended">add already recommended</label>
+            </div>
+            <div class="form-row">
+              <div class="col">
+                <input type="text" class="form-control" placeholder="Locales" id="solve_job_locales" title="space separated list of locales">
+              </div>
+              <div class="col">
+                <input type="text" class="form-control" placeholder="File Systems" id="solve_job_filesystems" title="space separated list of file systems">
+              </div>
+            </div>
+            <p/>
           </div>
           <div class="input-group mb-3 solve_job_group job_template">
             <div class="input-group-prepend">
@@ -128,8 +147,8 @@
   -->
 </div>
 
-<div aria-live="polite" aria-atomic="true" class="d-flex justify-content-center align-items-center" style="min-height: 200px;">
-  <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-delay="2000">
+<div aria-live="polite" aria-atomic="true">
+  <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-delay="2000" style="position: absolute; top: 3rem;">
     <div class="toast-header">
       <i class="fa fa-exclamation rounded text-danger mr-2"></i>
       <strong class="mr-auto">Bootstrap</strong>

@@ -203,6 +203,21 @@ function form_get_jobs() {
     });
   }
 
+  var locales = $('#solve_job_locales').val()
+  if (locales) {
+    locales.split(' ').forEach(function(i) {
+      jobs.push(['namespace', 'namespace:language({})'.replace('{}', i), '@SYSTEM']);
+    });
+  }
+
+  var filesystems = $('#solve_job_filesystems').val()
+  if (filesystems) {
+    filesystems.split(' ').forEach(function(i) {
+      jobs.push(['namespace', 'namespace:filesystem({})'.replace('{}', i), '@SYSTEM']);
+    });
+  }
+
+
   $('#solveform .solve_job_group').each(function(i){
     var jobtype = '';
     var name = '';
@@ -309,6 +324,10 @@ function solve() {
     data += 'solverflags ignorerecommended\n';
   }
 
+  if($('#solve_job_addalreadyrecommended').is(':checked')) {
+    data += 'solverflags addalreadyrecommended\n';
+  }
+
   $('#solv_spinner').show();
   var ep_solve = $('#ep_solve').attr('url');
   ret = $.post(ep_solve + '?distribution=' + get_distro(), data, null, 'json' );
@@ -347,11 +366,7 @@ function solve() {
 	var $deps=$('<td></td>');
 	r[2].forEach(function(rule){
 	  var solvable = dict2solvables(rule[0])[0];
-	  var what = rule[1].toLowerCase();
-	  if (what.substring(0, 4) == 'pkg_') {
-	    what = what.substring(4);
-	  }
-	  if (what != 'supplemented') {
+	  if (solvable.lookup('EVR').length) {
             $deps.append($('<a data-toggle="tooltip" data-placement="bottom"></button>')
               .attr('title', solvable.id)
               .text(solvable.name)
@@ -360,18 +375,33 @@ function solve() {
 	  } else {
 	    $deps.append($('<span></span>').text(solvable.name));
 	  }
-	  $deps.append($('<span class="ml-1"></span>').text(what));
-          $deps.append(
-            $('<a href="#" class="ml-1" data-toggle="tooltip" data-placement="bottom"></button>')
-              .attr('title', rule[2])
-              .text(rule[2])
-              .on('click', dep_info_clicked)
-          );
-	  for (i=3; i< rule.length; ++i) {
-	    if(rule[i]) {
-	      $deps.append($('<i class="ml-2"></i>').text(rule[i]));
-	    }
+	  var what = rule[1].toLowerCase();
+	  if (what.substring(0, 4) == 'pkg_') {
+	    what = what.substring(4);
 	  }
+	  $deps.append($('<span class="ml-1"></span>').text(what));
+          if (rule[2].startsWith('(')) {
+              $deps.append($('<i class="ml-2"></i>').text(rule[2]));
+          } else {
+            $deps.append(
+              $('<a href="#" class="ml-1" data-toggle="tooltip" data-placement="bottom"></button>')
+                .attr('title', rule[2])
+                .text(rule[2])
+                .on('click', dep_info_clicked)
+            );
+          }
+          if (rule.length > 3 && rule[3]) {
+            var s2 = dict2solvables(rule[3])[0];
+            if (s2.lookup('EVR').length) {
+              $deps.append($('<a data-toggle="tooltip" data-placement="bottom" class="ml-2"></button>')
+                .attr('title', s2.id)
+                .text(s2.name)
+                .attr('href', '#package_'+s2.name)
+              );
+            } else {
+              $deps.append($('<i class="ml-2"></i>').text(s2.name));
+            }
+          }
 	  $deps.append($("<br>"));
 	});
 	var solvable = dict2solvables(r[0])[0];
