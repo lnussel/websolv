@@ -575,7 +575,11 @@ function search() {
     $('#search_spinner').hide();
     return;
   }
-  $.getJSON(ep_search + '?' + $.param({'context': get_distro(), 'arch': get_arch(), 'text': text, 'repo': form_get_repos()}), function(info, status) {
+  var params = {'context': get_distro(), 'arch': get_arch(), 'text': text, 'repo': form_get_repos()};
+  if ($('#search_provides').is(':checked')) {
+    params['provides'] = 1;
+  }
+  $.getJSON(ep_search + '?' + $.param(params), function(info, status) {
     $.each(info, function(i, d) {
       var s = new Solvable(i, d);
       var $info_link = $('<button class="btn btn-link" data-toggle="tooltip" data-placement="bottom"></button>').attr('title', s.id).text(s.name).on('click', solvable_info_clicked);

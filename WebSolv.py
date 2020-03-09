@@ -124,13 +124,18 @@ def search():
     context = request.args.get('context', None)
     arch = request.args.get('arch', None)
     repos = request.args.getlist('repo[]')
+    provides = request.args.get('provides', None)
+    if provides is not None and provides == '1':
+        provides = True
+    else:
+        provides = False
 
     text = request.args.get('text', None)
     if not (context and text):
         raise KeyError("missing parameters")
 
     d = Deptool.Deptool(context=context, arch=arch, repos=repos)
-    result = d.search(text)
+    result = d.search(text, provides=provides)
 
     return jsonify(result)
 

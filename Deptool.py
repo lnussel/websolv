@@ -495,7 +495,7 @@ class Deptool(object):
 
         return result
 
-    def search(self, string):
+    def search(self, string, provides=False):
 
         if not self.pool:
             self.prepare_pool()
@@ -503,13 +503,23 @@ class Deptool(object):
         result = {}
 
         sel = self.pool.Selection()
-        di = self.pool.Dataiterator(solv.SOLVABLE_NAME, string, solv.Dataiterator.SEARCH_SUBSTRING|solv.Dataiterator.SEARCH_NOCASE)
-        for d in di:
-            sel.add_raw(solv.Job.SOLVER_SOLVABLE, d.solvid)
 
-        di = self.pool.Dataiterator(solv.SOLVABLE_SUMMARY, string, solv.Dataiterator.SEARCH_SUBSTRING|solv.Dataiterator.SEARCH_NOCASE)
-        for d in di:
-            sel.add_raw(solv.Job.SOLVER_SOLVABLE, d.solvid)
+        if provides:
+            di = self.pool.Dataiterator(solv.SOLVABLE_PROVIDES, string, solv.Dataiterator.SEARCH_SUBSTRING|solv.Dataiterator.SEARCH_NOCASE)
+            for d in di:
+                sel.add_raw(solv.Job.SOLVER_SOLVABLE, d.solvid)
+
+            di = self.pool.Dataiterator(solv.SOLVABLE_SUPPLEMENTS, string, solv.Dataiterator.SEARCH_SUBSTRING|solv.Dataiterator.SEARCH_NOCASE)
+            for d in di:
+                sel.add_raw(solv.Job.SOLVER_SOLVABLE, d.solvid)
+        else:
+            di = self.pool.Dataiterator(solv.SOLVABLE_NAME, string, solv.Dataiterator.SEARCH_SUBSTRING|solv.Dataiterator.SEARCH_NOCASE)
+            for d in di:
+                sel.add_raw(solv.Job.SOLVER_SOLVABLE, d.solvid)
+
+            di = self.pool.Dataiterator(solv.SOLVABLE_SUMMARY, string, solv.Dataiterator.SEARCH_SUBSTRING|solv.Dataiterator.SEARCH_NOCASE)
+            for d in di:
+                sel.add_raw(solv.Job.SOLVER_SOLVABLE, d.solvid)
 
         if sel.isempty():
             logger.error("%s not found", string)

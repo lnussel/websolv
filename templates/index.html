@@ -62,14 +62,18 @@
   <div class="tab-pane fade" id="search-pane" role="tabpanel" aria-labelledby="search-tab">
     <div class="card">
       <div class="card-body">
-        <div class="input-group mb-3">
-          <input type="text" class="form-control" aria-label="Package name" id="search-text" placeholder="search text">
-          <div class="input-group-append">
-            <button class="btn btn-primary" type="button" id="btn-search">Search</button>
+        <form>
+          <div class="form-group form-check form-check-inline">
+            <input type="checkbox" class="form-check-input" id="search_provides">
+            <label class="form-check-label" for="search_provides">search provides</label>
           </div>
-        </div>
-        <div id='search_result'>
-        </div>
+          <div class="input-group mb-3">
+            <input type="text" class="form-control" aria-label="Package name" id="search-text" placeholder="search text">
+          </div>
+          <button class="btn btn-success" type="button" id="btn-search">Search</button>
+          <div id='search_result'>
+          </div>
+        </form>
       </div>
     </div>
   </div>
