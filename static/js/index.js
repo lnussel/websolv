@@ -154,12 +154,17 @@ function start() {
 
     $('#btn-solve').on('click', function () { solve() });
 
-    $('#btn-search').on('click', function() { search() })
+    $('#btn-search').on('click', function() {
+      search();
+    })
     $('#search-text').on('keypress', function (e) {
       if (e.which == 13) {
         e.preventDefault();
         search();
       }
+    });
+    $('#searchform').submit(function (e) {
+      e.preventDefault();
     });
 
     $('#btn-solve-search').on('click', function () {
@@ -179,6 +184,7 @@ function start() {
 
     $('#dep_info').on('hidden.bs.modal', function() { window.history.back() });
     $('#solvable_info').on('hidden.bs.modal', function() { window.history.back() });
+
 
     $("#search-tab").tab('show');
     $('#search-text').focus();
@@ -564,6 +570,17 @@ function show_dep_info(name) {
 
 
 function search() {
+  var form = document.getElementById('searchform');
+  form.classList.add('was-validated');
+  if (form.checkValidity() === false) {
+    return;
+  }
+
+  var text = $('#search-text').val()
+  if (!text) {
+    return;
+  }
+
   $('#search_result').empty().hide();
   var $table = $(`
     <table class="table table-striped table-hover">
@@ -585,12 +602,6 @@ function search() {
 
   $('#search_spinner').show();
   var ep_search = $('#ep_search').attr('url');
-  var text = $('#search-text').val()
-  if (!text) {
-    show_error_popup("missing text");
-    $('#search_spinner').hide();
-    return;
-  }
   var params = {'context': get_distro(), 'arch': get_arch(), 'text': text, 'repo': form_get_repos()};
   if ($('#search_provides').is(':checked')) {
     params['provides'] = 1;
