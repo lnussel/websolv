@@ -444,7 +444,10 @@ class Deptool(object):
             if reason == solv.Solver.SOLVER_REASON_WEAKDEP:
                 for v in solver.describe_weakdep_decision(s):
                     reason2, s2, dep = v
-                    infos.append((s2, REASONS[reason2], dep.str()))
+                    target = s2
+                    if reason2 == solver.SOLVER_REASON_SUPPLEMENTED:
+                        target = s
+                    infos.append((target, REASONS[reason2], dep.str()))
             else:
                 if rule:
                     rt2str = {}
