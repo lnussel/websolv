@@ -185,7 +185,6 @@ function start() {
     $('#dep_info').on('hidden.bs.modal', function() { window.history.back() });
     $('#solvable_info').on('hidden.bs.modal', function() { window.history.back() });
 
-
     $("#search-tab").tab('show');
     $('#search-text').focus();
   });
@@ -486,9 +485,10 @@ function show_solvable_info(name) {
           if (k == 'REQUIRES' || k == 'PROVIDES' || k == 'SUGGESTS' ||  k == 'RECOMMENDS') {
             $.each(v, function(i, relation) {
             $('<li></li>').append(
-              $('<a href="#" class="data-toggle="tooltip" data-placement="bottom"></button>')
+              $('<a class="data-toggle="tooltip" data-placement="bottom"></button>')
                 .attr('title', relation)
                 .text(relation)
+                .attr('href', '#depinfo/'+relation)
                 .on('click', function(e) {
                   $('#solvable_info').one('hidden.bs.modal', function() { dep_info_clicked(e); });
                   $('#solvable_info').modal('hide');
@@ -552,12 +552,13 @@ function show_dep_info(name) {
       $.each(info[r], function(i, sid) {
         $('<li></li>')
           .append(
-            $('<button class="btn btn-link" data-toggle="tooltip" data-placement="bottom"></button>')
+            $('<a class="btn btn-link" data-toggle="tooltip" data-placement="bottom"></a>')
             .attr('title', sid)
             .text(sid)
+            .attr('href', '#info/'+sid)
             .on('click', function(e) {
+              $('#dep_info').one('hidden.bs.modal', function() { solvable_info_clicked(e) });
               $('#dep_info').modal('hide');
-              solvable_info_clicked(e);
             }))
         .appendTo($relationlist);
       });
@@ -609,7 +610,11 @@ function search() {
   $.getJSON(ep_search + '?' + $.param(params), function(info, status) {
     $.each(info, function(i, d) {
       var s = new Solvable(i, d);
-      var $info_link = $('<button class="btn btn-link" data-toggle="tooltip" data-placement="bottom"></button>').attr('title', s.id).text(s.name).on('click', solvable_info_clicked);
+      var $info_link = $('<a class="btn btn-link" data-toggle="tooltip" data-placement="bottom"></a>')
+        .attr('title', s.id)
+        .text(s.name)
+        .attr('href', '#info/'+s.id)
+        .on('click', solvable_info_clicked);
       var $install_link = $('<button class="btn btn-link" data-toggle="tooltip" data-placement="bottom"></button>')
         .attr('title', 'add to install set')
         .append($('<i class="fa fa-plus-square"></i>'))
