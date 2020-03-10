@@ -51,24 +51,27 @@ function setup_distro(info) {
   $('#solv_spinner').hide();
 
   var l = window.location.hash;
+  /*
   if (l == '#search' || l == '#solve') {
     $(l + '-tab').tab('show');
-  } else if (l.startsWith('#info/')) {
+  } else
+  if (l.startsWith('#info/')) {
     show_solvable_info(l.substr(('#info/').length));
   } else if (l.startsWith('#depinfo/')) {
     show_dep_info(l.substr(('#depinfo/').length));
-  } else {
-    $('#search-tab').tab('show');
   }
+  */
 }
 
 function add_new_job(name = null) {
   var $elem = $JOB_TEMPLATE.clone()
+  var $input = $elem.find('.solve_job_text');
   if (name) {
-    $elem.find('.solve_job_text').val(name)
+    $input.val(name)
   }
   $elem.insertBefore('#btn-add');
   job_setup_callbacks($elem);
+  $input.focus();
 }
 
 function job_setup_callbacks($elem) {
@@ -87,10 +90,10 @@ function job_setup_callbacks($elem) {
 
   $elem.find('.solve_job_text').on('keypress', function (e) {
     if (e.which == 13) {
+      e.preventDefault();
       solve();
     }
   });
-
 }
 
 function update_arch() {
@@ -158,18 +161,27 @@ function start() {
     $('#btn-search').on('click', function() { search() })
     $('#search-text').on('keypress', function (e) {
       if (e.which == 13) {
+        e.preventDefault();
         search();
       }
     });
 
     $('#page-function-tabs a[data-toggle="pill"]').on('shown.bs.tab', function (e) {
       // need to make sure the anchor doesn't match an existing one otherwise the page would scroll
-      window.location.replace(e.target['href'].replace('-pane', ''));
+      //window.location.replace(e.target['href'].replace('-pane', ''));
+      var what = e.target['id'];
+      if (what == 'search-tab') {
+        $('#search-text').focus();
+      } else if (what == 'solve-tab') {
+        $('#solveform .solve_job_text').last().focus();
+      }
     });
 
     $('#dep_info').on('hidden.bs.modal', function() { window.history.back() });
     $('#solvable_info').on('hidden.bs.modal', function() { window.history.back() });
 
+    $("#search-tab").tab('show');
+    $('#search-text').focus();
   });
 }
 
@@ -219,15 +231,14 @@ function form_get_jobs() {
 
 
   $('#solveform .solve_job_group').each(function(i){
-    var jobtype = '';
-    var name = '';
     var $elem = $(this);
-    $elem.find('.solve_job_button').each(function() { jobtype = this.textContent;});
-    $elem.find('.solve_job_text').each(function() { name = this.value;});
-    jobs.push(['job', jobtype.toLowerCase(), 'name', name]);
+    var jobtype = $elem.find('.solve_job_button').text();
+    var name = $elem.find('.solve_job_text').val();
     if (name == '') {
       show_error_popup('Error', 'must specify package name');
       err = true;
+    } else {
+      jobs.push(['job', jobtype.toLowerCase(), 'name', name]);
     }
   });
   if (err) {
@@ -367,7 +378,7 @@ function solve() {
 	r[2].forEach(function(rule){
 	  var solvable = dict2solvables(rule[0])[0];
 	  if (solvable.lookup('EVR').length) {
-            $deps.append($('<a data-toggle="tooltip" data-placement="bottom"></button>')
+            $deps.append($('<a data-toggle="tooltip" data-placement="bottom" href="#"></a>')
               .attr('title', solvable.id)
               .text(solvable.name)
               .attr('href', '#package_'+solvable.name)
@@ -384,9 +395,10 @@ function solve() {
               $deps.append($('<i class="ml-2"></i>').text(rule[2]));
           } else {
             $deps.append(
-              $('<a href="#" class="ml-1" data-toggle="tooltip" data-placement="bottom"></button>')
+              $('<a class="ml-1" data-toggle="tooltip" data-placement="bottom"></button>')
                 .attr('title', rule[2])
                 .text(rule[2])
+                .attr('href', '#depinfo/'+rule[2])
                 .on('click', dep_info_clicked)
             );
           }
@@ -411,7 +423,11 @@ function solve() {
 	if (reason == 'UNIT_RULE') {
 	  reason = ''; // most of them are UNIT_RULE and it's confusing
 	}
-	var $info_link = $('<button class="btn btn-link" data-toggle="tooltip" data-placement="bottom"></button>').attr('title', solvable.id).text(name).on('click', solvable_info_clicked);
+	var $info_link = $('<a class="btn btn-link" data-toggle="tooltip" data-placement="bottom"></a>')
+          .attr('title', solvable.id)
+          .text(name)
+          .attr('href', '#info/'+name)
+          .on('click', solvable_info_clicked);
 	var $row = $("<tr id=\"package_"+name+'"></tr>');
 	$('<td></td>').append($info_link).appendTo($row);
 	$('<td></td>').attr('data-order', size).append(b2s(size)).appendTo($row);
@@ -452,7 +468,7 @@ function show_solvable_info(name) {
 
   var ep_info = $('#ep_info').attr('url');
 
-  window.location.hash = '#info/' + name;
+  //window.location.hash = '#info/' + name;
 
   var solvable2table =  function($body, props) {
       $.each(props, function(k,v){
@@ -516,7 +532,7 @@ function show_dep_info(name) {
   $('#dep_info_title').text(name);
   $('#dep_info').modal('show');
 
-  window.location.hash = '#depinfo/' + name;
+  //window.location.hash = '#depinfo/' + name;
 
   var ep_depinfo = $('#ep_depinfo').attr('url');
 
@@ -586,7 +602,8 @@ function search() {
       var $install_link = $('<button class="btn btn-link" data-toggle="tooltip" data-placement="bottom"></button>')
         .attr('title', 'add to install set')
         .append($('<i class="fa fa-plus-square"></i>'))
-        .on('click', function(){
+        .on('click', function(e){
+          e.preventDefault();
           // FIXME: we should actually fill the one where the search button was clicked
           var $input = $('#solveform .solve_job_text').last();
           if ($input.val())

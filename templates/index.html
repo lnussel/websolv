@@ -50,8 +50,8 @@
 
 <nav>
   <div class="nav nav-tabs" id="page-function-tabs" role="tablist">
-    <a class="nav-link" id="search-tab" data-toggle="pill" href="#search-pane" role="tab" aria-controls="profile" aria-selected="false">Search</a>
-    <a class="nav-link" id="solve-tab" data-toggle="pill" href="#solve-pane" role="tab" aria-controls="home" aria-selected="true">Solve</a>
+    <a class="nav-link" id="search-tab" data-toggle="pill" href="#search" role="tab" aria-controls="search" aria-selected="true">Search</a>
+    <a class="nav-link" id="solve-tab" data-toggle="pill" href="#solve" role="tab" aria-controls="solve" aria-selected="false">Solve</a>
     <!--
       <a class="nav-link" id="settings-tab" data-toggle="pill" href="#settings-pane" role="tab" aria-controls="settings" aria-selected="false">Settings</a>
     -->
@@ -59,7 +59,7 @@
 </nav>
 
 <div class="tab-content" id="tabContent">
-  <div class="tab-pane fade" id="search-pane" role="tabpanel" aria-labelledby="search-tab">
+  <div class="tab-pane fade show active" id="search" role="tabpanel" aria-labelledby="search-tab">
     <div class="card">
       <div class="card-body">
         <form>
@@ -78,7 +78,7 @@
     </div>
   </div>
 
-  <div class="tab-pane fade show active" id="solve-pane" role="tabpanel" aria-labelledby="solve-tab">
+  <div class="tab-pane fade" id="solve" role="tabpanel" aria-labelledby="solve-tab">
     <div class="card">
       <div class="card-body">
         <form id="solveform">
