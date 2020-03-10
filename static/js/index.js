@@ -84,10 +84,6 @@ function job_setup_callbacks($elem) {
     $elem.remove();
   });
 
-  $elem.find('.solve_job_search_button').on('click', function () {
-    $('#search-tab').tab('show');
-  });
-
   $elem.find('.solve_job_text').on('keypress', function (e) {
     if (e.which == 13) {
       e.preventDefault();
@@ -164,6 +160,10 @@ function start() {
         e.preventDefault();
         search();
       }
+    });
+
+    $('#btn-solve-search').on('click', function () {
+      $('#search-tab').tab('show');
     });
 
     $('#page-function-tabs a[data-toggle="pill"]').on('shown.bs.tab', function (e) {
