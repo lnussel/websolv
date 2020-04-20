@@ -397,9 +397,11 @@ class Deptool(object):
             self.pool.set_namespaceproviders(solv.NAMESPACE_FILESYSTEM, self.pool.Dep(fs), True)
 
 
+        flags = solv.Selection.SELECTION_NAME|solv.Selection.SELECTION_CANON|solv.Selection.SELECTION_DOTARCH
+
         jobs = []
         for l in locked or []:
-            sel = self.pool.select(str(l), solv.Selection.SELECTION_NAME)
+            sel = self.pool.select(str(l), flags)
             if sel.isempty():
                 # if we can't find it, it probably is not as important
                 logger.debug('locked package {} not found'.format(l))
@@ -407,7 +409,7 @@ class Deptool(object):
                 jobs += sel.jobs(solv.Job.SOLVER_LOCK)
 
         for n in packages:
-            sel = self.pool.select(str(n), solv.Selection.SELECTION_NAME)
+            sel = self.pool.select(str(n), flags)
             if sel.isempty():
                 logger.error('package {} not found'.format(n))
             jobs += sel.jobs(solv.Job.SOLVER_INSTALL)
