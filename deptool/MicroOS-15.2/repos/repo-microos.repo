@@ -1,9 +1,9 @@
-[repo-iodine]
-name=Iodine Main Repository
+[repo-microos]
+name=MicroOS Main Repository
 enabled=1
 autorefresh=1
 baseurl=obs://home:lnussel:Iodine:15.2/standard/x86_64
 path=/
 type=obs
 keeppackages=0
-priority=50
+priority=10
