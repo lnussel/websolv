@@ -2,6 +2,7 @@
 
 import os
 import sys
+import time
 # XXX: abstract this
 import solv
 import Deptool
@@ -12,6 +13,8 @@ from flask import Flask, request, session, url_for, redirect, \
      render_template, send_file, abort, g, flash, _app_ctx_stack
 #from flask_bootstrap import Bootstrap
 from flask import json
+
+from xdg.BaseDirectory import save_cache_path
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -87,7 +90,20 @@ def solve():
     d = Deptool.Deptool(context=distribution)
     app.logger.debug("got job %s", data);
 
-    return jsonify(d.process_testcase(data.split('\n')))
+    result = d.process_testcase(data.split('\n'))
+
+    stamp = time.strftime("%Y%m%d-%H%M%S")
+    path = save_cache_path('opensuse.org', 'deptool', 'solve')
+
+    with open(os.path.join(path, 'job-{}.json'.format(stamp)), 'w') as fh:
+        s = dict(distibution = distribution, job = data, version="1")
+        fh.write(json.dumps(s))
+
+    with open(os.path.join(path, 'result-{}.json'.format(stamp)), 'w') as fh:
+        s = dict(result = result, version="1")
+        fh.write(json.dumps(result))
+
+    return jsonify(result)
 
 @app.route('/install/<string:context>')
 def install(context):
