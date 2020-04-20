@@ -255,7 +255,7 @@ class Deptool(object):
 
     def add_repos(self, repos = None):
 
-        for config in self._read_repos(self.context, repos):
+        for config in reversed([x for x in self._read_repos(self.context, repos)]):
             name = config.sections()[0]
             if repos == None and config.get(name, 'enabled') != '1':
                 continue
@@ -267,8 +267,10 @@ class Deptool(object):
             if not r:
                 raise DeptoolException('failed to add repo %s'%name)
             if config.has_option(name, 'priority'):
-                repo.priority = config.getint(name, 'priority')
-            logger.debug("added repo %s", name)
+                repo.priority = -config.getint(name, 'priority')
+            else:
+                repo.priority = -99
+            logger.debug("added repo %s with prio %d", name, repo.priority)
 
     def _add_system_repo(self):
         solvfile = '/var/cache/zypp/solv/@System/solv'
@@ -633,7 +635,7 @@ class Deptool(object):
         logger.info('refreshing %s', context)
         info = self.context_info(context)
         if info.get('refresh', '1') in ('0', 'False'):
-            raise DeptoolException("refresh disabled for {}".format(context))
+            logger.error("refresh disabled for {}".format(context))
             return
 
         for name in info['repos'].keys():
@@ -719,7 +721,7 @@ class CommandLineInterface(cmdln.Cmdln):
                     if opts.size:
                         print(s[0].lookup_num(solv.SOLVABLE_INSTALLSIZE), s[0].name, ','.join(packages))
                     else:
-                        print(s[0].name, ','.join(packages))
+                        print(s[0].str(), ','.join(packages))
                     if opts.explain and (s[0].name in opts.explain or '*' in opts.explain):
                         print("-> %s" % (s[1]))
                         for rule in s[2]:
