@@ -456,7 +456,10 @@ function solve() {
   });
   ret.fail(function(xhr, status, error) {
     $('#solv_spinner').hide();
-    show_error_popup(error, JSON.parse(xhr.responseText)['message']);
+    var $errorlist = $('#solv_problems');
+    $('<li class="list-group-item list-group-item-danger">').text(JSON.parse(xhr.responseText)['message']).appendTo($errorlist);
+    $errorlist.show();
+
   });
 }
 
