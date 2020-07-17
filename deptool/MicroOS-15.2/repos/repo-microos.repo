@@ -2,8 +2,7 @@
 name=MicroOS Main Repository
 enabled=1
 autorefresh=1
-baseurl=obs://openSUSE:Leap:15.2:MicroOS/standard/x86_64
+baseurl=http://download.opensuse.org/distribution/leap/15.2/microos/repo/MicroOS-15.2-x86_64-Media1/
 path=/
-type=obs
 keeppackages=0
 priority=10
