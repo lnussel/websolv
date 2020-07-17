@@ -446,10 +446,12 @@ function solve() {
         "scrollY": true,
         paging: false,
         "order": [[1, 'desc']],
+        dom: 'Bfrtip',
         columnDefs: [
           { targets: [3], 'orderable': false },
           { targets: [1], 'searchable': false },
         ],
+        "buttons": [ 'copy' ],
         "pageLength": 25
       });
     }
