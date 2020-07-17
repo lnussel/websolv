@@ -11,6 +11,14 @@ function get_arch() {
    return $('#arch_select').val();
 }
 
+function handle_xhr_fail_popup(xhr, textStatus, error) {
+  var msg = "Unexpected server response";
+  if(xhr.getResponseHeader("Content-Type") == "json") {
+    msg = JSON.parse(xhr.responseText)['message']
+  }
+  show_error_popup(error, msg);
+}
+
 function setup_distro(info) {
   if (!get_distro() || !get_arch()) {
     show_error_popup('Error', 'Missing distro or arch');
@@ -107,7 +115,7 @@ function update_arch() {
     });
 
     setup_distro(info);
-  });
+  }).fail(handle_xhr_fail_popup);
 }
 
 function start() {
@@ -145,9 +153,7 @@ function start() {
       $.post(ep_refresh + '?' + $.param({'context': get_distro()}), '', function(info, status) {
         show_info_popup('Repo refresh', info['message']);
       }, 'json')
-      .fail(function(xhr, textStatus, error) {
-        show_error_popup(error, JSON.parse(xhr.responseText)['message']);
-      });
+      .fail(handle_xhr_fail_popup);
     });
 
     $('#btn-add').on('click', function() { add_new_job() });
@@ -187,7 +193,7 @@ function start() {
 
     $("#search-tab").tab('show');
     $('#search-text').focus();
-  });
+  }).fail(handle_xhr_fail_popup);
 }
 
 function _show_popup($dialog, title, text) {
@@ -299,7 +305,7 @@ function show_alternatives(relation) {
     });
     $('#whatprovides_dialog_spinner').hide();
     $list.show();
-  });
+  }).fail(handle_xhr_fail_popup);
 }
 
 function solve() {
@@ -458,10 +464,13 @@ function solve() {
   });
   ret.fail(function(xhr, status, error) {
     $('#solv_spinner').hide();
-    var $errorlist = $('#solv_problems');
-    $('<li class="list-group-item list-group-item-danger">').text(JSON.parse(xhr.responseText)['message']).appendTo($errorlist);
-    $errorlist.show();
-
+    if(xhr.getResponseHeader("Content-Type") == "json") {
+      var $errorlist = $('#solv_problems');
+      $('<li class="list-group-item list-group-item-danger">').text(JSON.parse(xhr.responseText)['message']).appendTo($errorlist);
+      $errorlist.show();
+    } else {
+      handle_xhr_fail_popup(xhr, status, error);
+    }
   });
 }
 
@@ -529,7 +538,7 @@ function show_solvable_info(name) {
     solvable2table($body, info[s])
     $('#solvable_info_spinner').hide();
     $('#solvable_props').show();
-  });
+  }).fail(handle_xhr_fail_popup);
 }
 
 function dep_info_clicked(e) {
@@ -571,7 +580,7 @@ function show_dep_info(name) {
     });
     $('#dep_info_spinner').hide();
     $('#dep_info_props').show();
-  });
+  }).fail(handle_xhr_fail_popup);
 }
 
 
@@ -647,7 +656,7 @@ function search() {
       "order": [],
       "pageLength": 25
     });
-  });
+  }).fail(handle_xhr_fail_popup);
 
 };
 

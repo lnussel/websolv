@@ -78,14 +78,14 @@ def solve():
 
     distribution = request.args.get('distribution')
     if distribution is None:
-        raise KeyError("missing distribution")
+        raise Deptool.DeptoolException("missing distribution")
 
     if request.content_length > 2048:
-        raise KeyError("request too large")
+        raise Deptool.DeptoolException("request too large")
 
     data = request.get_data(as_text=True)
     if data is None:
-        raise KeyError("missing data")
+        raise Deptool.DeptoolException("missing data")
 
     d = Deptool.Deptool(context=distribution)
     app.logger.debug("got job %s", data);
@@ -126,7 +126,7 @@ def info():
 
     package = request.args.get('package', None)
     if not (context and package):
-        raise KeyError("missing parameters")
+        raise Deptool.DeptoolException("missing parameters")
 
     d = Deptool.Deptool(context=context, arch=arch, repos=repos)
     if arch:
@@ -148,7 +148,7 @@ def search():
 
     text = request.args.get('text', None)
     if not (context and text):
-        raise KeyError("missing parameters")
+        raise Deptool.DeptoolException("missing parameters")
 
     d = Deptool.Deptool(context=context, arch=arch, repos=repos)
     result = d.search(text, provides=provides)
@@ -163,7 +163,7 @@ def whatprovides():
     repos = request.args.getlist('repo[]')
     relation = request.args.get('relation', None)
     if not (context and relation):
-        raise KeyError("missing relation parameter")
+        raise Deptool.DeptoolException("missing relation parameter")
 
     d = Deptool.Deptool(context=context, arch=arch, repos=repos)
     result = d.whatprovides(relation)
@@ -178,7 +178,7 @@ def rdeps_json():
 
     solvable = request.args.get('solvable', None)
     if not (context and solvable):
-        raise KeyError("missing parameters")
+        raise Deptool.DeptoolException("missing parameters")
 
     d = Deptool.Deptool(context=context, arch=arch, repos=repos)
     result = d.rdeps(solvable)
@@ -193,7 +193,7 @@ def depinfo_json():
 
     relation = request.args.get('relation', None)
     if not (context and relation):
-        raise KeyError("missing parameters")
+        raise Deptool.DeptoolException("missing parameters")
 
     d = Deptool.Deptool(context=context, arch=arch, repos=repos)
     result = d.depinfo(relation)
@@ -204,7 +204,7 @@ def depinfo_json():
 def refresh():
     context = request.args.get('context', None)
     if not context:
-        raise KeyError("missing parameters")
+        raise Deptool.DeptoolException("missing parameters")
 
     d = Deptool.Deptool(context=context)
     d.refresh_repos()
@@ -237,7 +237,7 @@ def depinfo(context):
 
     relation = request.args.get('relation')
     if relation is None:
-        raise KeyError("missing relation parameter")
+        raise Deptool.DeptoolException("missing relation parameter")
 
     d = Deptool.Deptool(context=context)
     result = d.depinfo(relation)
