@@ -47,6 +47,7 @@ def handle_exception(e):
 
 @app.errorhandler(Deptool.DeptoolException)
 def handle_exception(e):
+    app.logger.error("caught exception: %s", str(e));
     response = jsonify({'message': str(e)})
     response.status_code = 400
     return response
@@ -209,7 +210,7 @@ def refresh():
     d = Deptool.Deptool(context=context)
     d.refresh_repos()
 
-    return jsonify({'message': 'ok'})
+    return jsonify({'message': '%s refreshed successfully'%(context)})
 
 
 @app.route('/info/<string:context>/<string:package>')

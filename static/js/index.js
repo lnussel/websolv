@@ -13,7 +13,8 @@ function get_arch() {
 
 function handle_xhr_fail_popup(xhr, textStatus, error) {
   var msg = "Unexpected server response";
-  if(xhr.getResponseHeader("Content-Type") == "json") {
+  if(xhr.getResponseHeader("Content-Type") == "json"
+     || xhr.getResponseHeader("Content-Type") == "application/json") {
     msg = JSON.parse(xhr.responseText)['message']
   }
   show_error_popup(error, msg);
