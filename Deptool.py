@@ -122,6 +122,18 @@ def parse_repomd(repo, baseurl, target_dir, force = False):
     os.lseek(f.fileno(), 0, os.SEEK_SET)
     repo.add_repomdxml(solv.xfopen_fd(None, f.fileno()), 0)
 
+    if not _extend_repo(repo, baseurl, target_dir, 'primary', None):
+        return False
+
+    if not _extend_repo(repo, baseurl, target_dir, 'filelists', solv.Repo.REPO_EXTEND_SOLVABLES):
+        return False
+
+    os.rename(repomd_fn + '.new', repomd_fn)
+
+    return True
+
+def _extend_repo(repo, baseurl, target_dir, what, flag):
+
     def find(repo, what):
         di = repo.Dataiterator_meta(solv.REPOSITORY_REPOMD_TYPE, what, solv.Dataiterator.SEARCH_STRING)
         di.prepend_keyname(solv.REPOSITORY_REPOMD)
@@ -137,7 +149,7 @@ def parse_repomd(repo, baseurl, target_dir, force = False):
                 return (filename, chksum)
         return (None, None)
 
-    location, chksum = find(repo, 'primary')
+    location, chksum = find(repo, what)
     logger.debug('location %s', location)
     if location is None:
         raise InvaliRepoMD('missing location in repomd.xml')
@@ -166,7 +178,6 @@ def parse_repomd(repo, baseurl, target_dir, force = False):
 
         repo.add_rpmmd(solv.xfopen_fd(fn if fn.endswith('.gz') else None, f.fileno()), None, 0)
 
-        os.rename(repomd_fn + '.new', repomd_fn)
         return True
 
     return False
