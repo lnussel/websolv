@@ -248,7 +248,7 @@ def depinfo(context):
 
 @app.route('/awesome/<path:filename>')
 def awesome(filename):
-    return send_from_directory('/usr/share/font-awesome-web', filename)
+    return send_from_directory('/usr/share/fontawesome-web', filename)
 
 
 application = app
