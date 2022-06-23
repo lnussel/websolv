@@ -1,8 +1,0 @@
-[repo-update]
-name=openSUSE-Leap-15.1-Update
-enabled=1
-autorefresh=1
-baseurl=http://download.opensuse.org/update/leap/15.1/oss/
-path=/
-type=rpm-md
-keeppackages=0
