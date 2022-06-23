@@ -1,0 +1,8 @@
+[BaseOS]
+name=Centos Stream Base OS
+enabled=1
+autorefresh=1
+baseurl=http://mirror.stream.centos.org/9-stream/BaseOS/x86_64/os/
+path=/
+type=rpm-md
+keeppackages=0

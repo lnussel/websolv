@@ -1,8 +1,0 @@
-[BaseOS]
-name=Centos 8 Base OS
-enabled=1
-autorefresh=0
-baseurl=http://mirror.centos.org/centos/8/BaseOS/x86_64/os/
-path=/
-type=rpm-md
-keeppackages=0
