@@ -1,8 +1,0 @@
-[repo-microos]
-name=MicroOS Main Repository
-enabled=1
-autorefresh=1
-baseurl=http://download.opensuse.org/distribution/leap/15.2/microos/repo/MicroOS-15.2-x86_64-Media1/
-path=/
-keeppackages=0
-priority=10
