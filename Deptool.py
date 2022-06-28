@@ -19,6 +19,9 @@ import io
 from urllib.parse import urljoin
 # TODO
 from xdg.BaseDirectory import save_cache_path, load_config_paths
+from collections import namedtuple
+
+Repo = namedtuple('Repo', ['context', 'id', 'baseurl'])
 
 DATA_DIR = os.path.dirname(os.path.realpath(__file__))
 
@@ -263,6 +266,7 @@ class Deptool(object):
             if not os.path.exists(fn):
                 raise DeptoolException('repo cache for "%s" does not exist. Need to refresh first?'%name)
             repo = self.pool.add_repo(name)
+            repo.appdata = Repo(self.context, name, config[name]['baseurl'])
             r = repo.add_solv(fn)
             if not r:
                 raise DeptoolException('failed to add repo %s'%name)
