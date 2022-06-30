@@ -898,6 +898,8 @@ class CommandLineInterface(cmdln.Cmdln):
                   help="print installed size")
     @cmdln.option("--explain", dest="explain", action="append",
                   help="rule to explain")
+    @cmdln.option("--download", action="store_true",
+                  help="download packages")
     def do_parse(self, subcmd, opts, filename):
         """${cmd_name}: solve test case
 
@@ -915,6 +917,33 @@ class CommandLineInterface(cmdln.Cmdln):
                         print(s[0].lookup_num(solv.SOLVABLE_INSTALLSIZE), s[0].name)
                     else:
                         print(s[0].name)
+
+                    if opts.download:
+                        l = s[0].lookup_location()
+                        if l is None:
+                            logger.warn("%s has no download location", s[0].name)
+                            continue
+                        pkgdir = save_cache_path('opensuse.org', 'deptool', 'repodata', s[0].repo.appdata.context, 'packages', s[0].repo.appdata.id, os.path.dirname(l[0]))
+                        fn = os.path.join(pkgdir, os.path.basename(os.path.basename(l[0])))
+                        headers = {}
+                        if os.path.exists(fn):
+                            headers['If-Modified-Since'] = time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.gmtime(os.path.getmtime(fn)))
+                        url = urljoin(s[0].repo.appdata.baseurl, l[0])
+                        if self.options.dry:
+                            logger.info("%s -> %s", url, fn)
+                        else:
+                            rq = requests.get(url, headers = headers)
+                            if rq.status_code == requests.codes.not_modified:
+                                logger.debug("%s not modified, skipped", fn)
+                                continue
+                            if rq.status_code != requests.codes.ok:
+                                continue
+
+                            f = open(fn + '.new', 'w+b')
+                            f.write(rq.content)
+                            f.close()
+                            os.rename(fn + '.new', fn)
+
                     if opts.explain and (s[0].name in opts.explain or '*' in opts.explain):
                         print("-> %s" % (s[1]))
                         for rule in s[2]:
