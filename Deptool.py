@@ -9,7 +9,7 @@ import cmdln
 import time
 
 from fnmatch import fnmatch
-from configparser import SafeConfigParser
+from configparser import ConfigParser
 import solv
 import rpm
 import requests
@@ -190,7 +190,7 @@ class Deptool(object):
     def context_info(self, context):
         result = {}
 
-        settings = SafeConfigParser()
+        settings = ConfigParser()
         settings.read('/'.join((DATA_DIR, 'deptool', context, 'settings.conf')))
 
         for key in settings['global']:
@@ -248,7 +248,7 @@ class Deptool(object):
                 name = r
                 r += '.repo'
 
-            config = SafeConfigParser()
+            config = ConfigParser()
             config.read('/'.join((repodir, r)))
             if not name in config:
                 logger.error("missing section {} in {}".format(name, r))
