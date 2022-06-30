@@ -900,6 +900,8 @@ class CommandLineInterface(cmdln.Cmdln):
                   help="rule to explain")
     @cmdln.option("--download", action="store_true",
                   help="download packages")
+    @cmdln.option("--nvra", action="store_true",
+                  help="more verbose lising")
     def do_parse(self, subcmd, opts, filename):
         """${cmd_name}: solve test case
 
@@ -915,6 +917,8 @@ class CommandLineInterface(cmdln.Cmdln):
                 for s in result['newsolvables']:
                     if opts.size:
                         print(s[0].lookup_num(solv.SOLVABLE_INSTALLSIZE), s[0].name)
+                    elif opts.nvra:
+                        print('{}-{}.{}'.format(s[0].name, s[0].evr, s[0].arch))
                     else:
                         print(s[0].name)
 
