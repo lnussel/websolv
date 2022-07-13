@@ -100,9 +100,9 @@ def solve():
         s = dict(distibution = distribution, job = data, version="1")
         fh.write(json.dumps(s))
 
-    with open(os.path.join(path, 'result-{}.json'.format(stamp)), 'w') as fh:
-        s = dict(result = result, version="1")
-        fh.write(json.dumps(result))
+#    with open(os.path.join(path, 'result-{}.json'.format(stamp)), 'w') as fh:
+#        s = dict(result = result, version="1")
+#        fh.write(json.dumps(result))
 
     return jsonify(result)
 
