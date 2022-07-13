@@ -104,7 +104,16 @@ def solve():
 #        s = dict(result = result, version="1")
 #        fh.write(json.dumps(result))
 
-    return jsonify(result)
+    if 'text/uri-list' in request.accept_mimetypes.best:
+        return '\n'.join(d.result_as_urls(result))+"\n", 200, { 'Content-Type': 'text/uri-list' }
+
+    if 'application/metalink4+xml' in request.accept_mimetypes.best:
+        return d.result_as_metalink(result), 200, { 'Content-Type': 'application/metalink4+xml' }
+
+    if request.accept_mimetypes.accept_json:
+        return jsonify(result)
+
+    raise Deptool.DeptoolException("invalid format")
 
 @app.route('/install/<string:context>')
 def install(context):

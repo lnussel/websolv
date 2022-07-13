@@ -1,3 +1,8 @@
+$.ajaxSetup({
+  accepts: { "metalink": "application/metalink4+xml; charset=utf-8" },
+  converters: { "text metalink": true }
+});
+
 $(document).ready(function() {
 var $JOB_TEMPLATE;
 var $REPO_TEMPLATE;
@@ -160,6 +165,8 @@ function start() {
     $('#btn-add').on('click', function() { add_new_job() });
 
     $('#btn-solve').on('click', function () { solve() });
+
+    $('#btn-solve-as-metalink').on('click', function () { solve('metalink') });
 
     $('#btn-search').on('click', function() {
       search();
@@ -335,17 +342,29 @@ function prepare_solv_job() {
   return data;
 }
 
-function solve() {
+function solve(type = 'json') {
 
-  $('#solv_result').hide();
-  $('#solv_result_packagelist').empty();
+  if (type == 'json') {
+    $('#solv_result').hide();
+    $('#solv_result_packagelist').empty();
+  }
+
   data = prepare_solv_job();
 
   $('#solv_spinner').show();
   var ep_solve = $('#ep_solve').attr('url');
-  ret = $.post(ep_solve + '?distribution=' + get_distro(), data, null, 'json' );
+  ret = $.post(ep_solve + '?distribution=' + get_distro(), data, null, type );
   ret.done(function(result, textStatus, xhr) {
     $('#solv_spinner').hide();
+    if (type == 'metalink') {
+      blob = new Blob([result], {type:'application/metalink4+xml'});
+      var a = document.createElementNS('http://www.w3.org/1999/xhtml', 'a')
+      a.download = "solvresult.meta4";
+      a.rel = 'noopener';
+      a.href = URL.createObjectURL(blob);
+      a.click();
+      return;
+    }
     var size = result['size'];
     var $table = $(`
       <table class="table table-striped table-hover">
