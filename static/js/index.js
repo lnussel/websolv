@@ -309,26 +309,7 @@ function show_alternatives(relation) {
   }).fail(handle_xhr_fail_popup);
 }
 
-function solve() {
-
-  $('#solv_result').hide();
-  $('#solv_result_packagelist').empty();
-  var $table = $(`
-    <table class="table table-striped table-hover">
-      <thead>
-        <tr>
-          <th>Package</th>
-          <th>Size</th>
-          <th>Reason</th>
-          <th>Rule</th>
-        </tr>
-      </thead>
-      <tbody>
-      </tbody>
-    </table>`);
-
-  var $tbody = $table.find('tbody');
-
+function prepare_solv_job() {
   var data = 'system ' + get_arch() + ' rpm\n';
 
   form_get_repos().forEach(function(e, i){
@@ -351,12 +332,36 @@ function solve() {
     data += 'solverflags addalreadyrecommended\n';
   }
 
+  return data;
+}
+
+function solve() {
+
+  $('#solv_result').hide();
+  $('#solv_result_packagelist').empty();
+  data = prepare_solv_job();
+
   $('#solv_spinner').show();
   var ep_solve = $('#ep_solve').attr('url');
   ret = $.post(ep_solve + '?distribution=' + get_distro(), data, null, 'json' );
   ret.done(function(result, textStatus, xhr) {
     $('#solv_spinner').hide();
     var size = result['size'];
+    var $table = $(`
+      <table class="table table-striped table-hover">
+        <thead>
+          <tr>
+            <th>Package</th>
+            <th>Size</th>
+            <th>Reason</th>
+            <th>Rule</th>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>`);
+
+    var $tbody = $table.find('tbody');
     $tbody.append(
       $("<tr></tr>")
         .append("<td>TOTAL</td>")
