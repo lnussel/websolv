@@ -281,6 +281,42 @@ class Deptool(object):
         repo = self.pool.add_repo('system')
         repo.add_solv(solvfile)
 
+    def result_as_metalink(self, result):
+        if 'newsolvables' not in result:
+            return None
+
+        meta = '<metalink xmlns="urn:ietf:params:xml:ns:metalink">\n'
+
+        for s in result['newsolvables']:
+            l = s[0].lookup_location()
+            if l is None:
+                logger.warn("%s has no download location", s[0].name)
+                continue
+            url = urljoin(s[0].repo.appdata.baseurl, l[0])
+
+            # XXX: how to make sure location is a relative path to current directory?
+            chksum = s[0].lookup_checksum(solv.SOLVABLE_CHECKSUM)
+            meta += '<file name="{}"><hash type="{}">{}</hash><size>{}</size><url>{}</url></file>\n'.format(
+                l[0], chksum.typestr(), chksum.hex(),
+                s[0].lookup_num(solv.SOLVABLE_DOWNLOADSIZE),
+                url)
+
+        meta += '</metalink>\n'
+
+        return meta
+
+    def result_as_urls(self, result):
+        if 'newsolvables' not in result:
+            return
+
+        for s in result['newsolvables']:
+            l = s[0].lookup_location()
+            if l is None:
+                logger.warn("%s has no download location", s[0].name)
+                continue
+            yield urljoin(s[0].repo.appdata.baseurl, l[0])
+
+
     def process_testcase(self, lines):
 
         prepared = False
@@ -900,6 +936,10 @@ class CommandLineInterface(cmdln.Cmdln):
                   help="rule to explain")
     @cmdln.option("--download", action="store_true",
                   help="download packages")
+    @cmdln.option("--urls", action="store_true",
+                  help="list download urls")
+    @cmdln.option("--metalink", action="store_true",
+                  help="metalink download urls")
     @cmdln.option("--nvra", action="store_true",
                   help="more verbose lising")
     def do_parse(self, subcmd, opts, filename):
@@ -912,6 +952,15 @@ class CommandLineInterface(cmdln.Cmdln):
         with open(filename, 'r') as fh:
 
             result = self.d.process_testcase(fh.readlines())
+
+            if opts.metalink:
+                print(self.d.result_as_metalink(result))
+                return
+
+            if opts.urls:
+                for url in self.d.result_as_urls(result):
+                    print(url)
+                return
 
             if 'newsolvables' in result:
                 for s in result['newsolvables']:
