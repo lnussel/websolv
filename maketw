@@ -1,0 +1,17 @@
+#!/bin/bash
+# create copies of TW config for each version in history list
+set -e
+URL="http://download.opensuse.org/history"
+versions=($(curl --fail --silent $URL/list))
+for version in "${versions[@]}"; do
+	[ -e deptool/Tumbleweed-"$version" ] && continue
+	echo "creating $version"
+	cp -a deptool/Tumbleweed "deptool/Tumbleweed-$version"
+	for file in "deptool/Tumbleweed-$version"/repos/*.repo; do
+		sed -i -r "s|(name=.*)|\\1 ($version)|" "$file"
+		sed -i -r "s|(baseurl=).*tumbleweed/(.*)|\\1$URL/$version/tumbleweed/\\2|" "$file"
+	done
+	./Deptool.py -C "Tumbleweed-$version" ref
+	# historic repos may go away
+	echo "refresh=0" >> "deptool/Tumbleweed-$version/settings.conf"
+done
