@@ -183,7 +183,8 @@ class Deptool(object):
 
         return context
 
-    def context_list(self):
+    @staticmethod
+    def context_list():
         d = DATA_DIR + "/deptool"
         return sorted([os.path.basename(f) for f in os.listdir(d) if os.path.isdir(os.path.join(d, f))])
 
@@ -711,13 +712,13 @@ class CommandLineInterface(cmdln.Cmdln):
         global logger
         logger = logging.getLogger()
 
+        if self.options.context and self.options.context == 'list':
+            print('\n'.join(Deptool.context_list()))
+            sys.exit(0)
+
         self.d = Deptool(self.options.context)
         self.d.arch = self.options.arch
         self.d.with_system = self.options.system
-
-        if self.options.context and self.options.context == 'list':
-            print('\n'.join(self.d.context_list()))
-            sys.exit(0)
 
     @cmdln.option("-s", "--single", action="store_true",
                   help="single step all requires/recommends")
@@ -1021,7 +1022,7 @@ class CommandLineInterface(cmdln.Cmdln):
         if self.d.context:
             self.d.refresh_repos(None, opts.force, opts.repo)
         else:
-            for c in self.d.context_list():
+            for c in Deptool.context_list():
                 self.d.refresh_repos(c, opts.force, opts.repo)
 
 if __name__ == "__main__":
