@@ -471,9 +471,14 @@ class Deptool(object):
         if problems:
             # XXX: need to convert to string here as solver goes out of scope
             # so the conversion would crash later
-            result['problems'] = [str(p) for p in problems]
+            result['problems'] = []
             for problem in problems:
-                logger.error('%s', problem)
+                problemstr = str(problem)
+                for s in problem.solutions():
+                    for e in s.elements(True):
+                        problemstr += ", {}: {}".format(s.id, e.str())
+                logger.error('%s', problemstr)
+                result['problems'].append(problemstr)
             return result
 
         trans = solver.transaction()
@@ -1005,6 +1010,8 @@ class CommandLineInterface(cmdln.Cmdln):
 
                 if opts.size:
                     print("%s TOTAL" % (result['size']))
+
+            return 1 if 'problems' in result else 0
 
     @cmdln.option("-f", "--force", action="store_true",
                   help="don't check timestamp")
