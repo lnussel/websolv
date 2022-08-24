@@ -539,7 +539,24 @@ function show_solvable_info(name) {
 	  $col.append($list);
 	} else {
 	  if (k == 'LICENSE') {
-	    $col.append($('<a href="https://spdx.org/licenses/{}.html"></a>'.replace('{}', v)).text(v))
+            $.each(v.split(' '), function(i, l){
+              if (l == 'AND' || l == 'OR' || l == 'WITH')
+                $col.append(" " + l + " ");
+              else {
+                var suff;
+                if (l.startsWith('(')) {
+                  $col.append('(');
+                  l = l.substr(1);
+                }
+                if (l.endsWith(')')) {
+                  suff = ')';
+                  l = l.substr(0, l.length-1);
+                }
+                $col.append($('<a></a>').attr('href', "https://spdx.org/licenses/{}.html".replace('{}', l)).text(l))
+                if (suff)
+                  $col.append(suff);
+              }
+            })
 	  } else if (k.substr(-4) == 'SIZE') {
 	    $col.append(b2s(v));
 	  } else if (typeof(v) == 'string' && (v.substr(0, 7) == 'http://' || v.substr(0,8) == 'https://')) {
