@@ -515,7 +515,7 @@ function show_solvable_info(name) {
   //window.location.hash = '#info/' + name;
 
   var solvable2table =  function($body, props) {
-      $.each(props, function(k,v){
+      var item2row = function(k,v){
 	var $row = $('<tr></tr>');
 	$('<td></td>').text(k).appendTo($row);
 	var $col = $('<td></td>');
@@ -567,7 +567,14 @@ function show_solvable_info(name) {
 	}
 	$col.appendTo($row);
 	$row.appendTo($body);
+      };
+      ['NAME', 'EVR', 'SUMMARY', 'DESCRIPTION', 'URL'].forEach(function(k){
+        if (k in props) {
+          item2row(k, props[k]);
+          delete props[k];
+        }
       });
+      $.each(props, item2row);
     }
 
 
