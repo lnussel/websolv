@@ -49,12 +49,6 @@ def fqpn(s):
 
 
 def solv_file_dir(context, config, name):
-    repofile = DATA_DIR + "/deptool/%s/repos/%s.repo"%(context, name)
-    # repo file can be link to a repo of another distro, reuse cache from there
-    if os.path.islink(repofile):
-        target = os.path.abspath(os.path.join(os.path.dirname(repofile), os.readlink(repofile)))
-        com = os.path.commonpath((repofile, target))
-        context = target[len(com)+1:].split(os.sep, 2)[0]
     return save_cache_path('opensuse.org', 'deptool', 'repodata', context, 'solv', name)
 
 def solv_file_name(context, config, name):
@@ -62,6 +56,16 @@ def solv_file_name(context, config, name):
 
 # courtesy of pkglistgen
 def update_repo_cache(context, config, name, force = False):
+    logger.info('updating repo %s/%s', context, name)
+    repofile = DATA_DIR + "/deptool/%s/repos/%s.repo"%(context, name)
+    # repo file can be link to a repo of another distro, reuse cache from there
+    if os.path.islink(repofile):
+        target = os.readlink(repofile)
+        if target.startswith('../../'):
+            context = target.split(os.sep, 3)[2]
+            logger.info("use cache from %s", context)
+            return update_repo_cache(context, config, name, force)
+
     pool = solv.Pool()
     pool.setarch()
 
@@ -687,7 +691,6 @@ class Deptool(object):
             return
 
         for name in info['repos'].keys():
-            logger.info(' updating repo %s', name)
             update_repo_cache(context, info['repos'], name, force)
 
 class CommandLineInterface(cmdln.Cmdln):
