@@ -21,7 +21,7 @@ app.config.from_object(__name__)
 #Bootstrap(app)
 #app.config['BOOTSTRAP_SERVE_LOCAL'] = True
 
-class GJSONEncoder(json.JSONEncoder):
+class GJSONProvider(json.provider.DefaultJSONProvider):
     def default(self, o):
         if isinstance(o, solv.XSolvable):
             return { str(o): Deptool.Deptool._solvable2dict(o) }
@@ -29,9 +29,10 @@ class GJSONEncoder(json.JSONEncoder):
         if isinstance(o, solv.Problem):
             return str(o)
 
-        return json.JSONEncoder.default(self, o)
+        return super().default(o)
 
-app.json_encoder = GJSONEncoder
+app.json_provider_class = GJSONProvider
+app.json = GJSONProvider(app)
 
 @app.errorhandler(HTTPException)
 def handle_exception(e):
