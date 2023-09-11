@@ -1,8 +1,0 @@
-[Everything]
-name=Fedora 36
-enabled=1
-autorefresh=1
-baseurl=http://mirror.23media.com/fedora/linux/releases/36/Everything/x86_64/os/
-path=/
-type=rpm-md
-keeppackages=0
