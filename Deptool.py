@@ -857,18 +857,55 @@ class CommandLineInterface(cmdln.Cmdln):
         ${cmd_option_list}
         """
 
-        self.prepare_pool()
+        import graphviz
+
+        dot = graphviz.Digraph()
+
+        dot.attr('node', shape='box', style="dotted")
+        dot.attr('graph', rankdir='LR')
+
+        self.d.prepare_pool()
 
         patternid = self.d.pool.str2id('pattern()')
         for s in self.d.pool.whatprovides(patternid):
+            if s.name.endswith('-32bit') \
+                    or s.name.startswith('patterns-media-') \
+                    or s.name.endswith('onlyDVD'):
+                logger.debug("%s ignored", s.name)
+                continue
+            logger.info("%s", s.name)
+            name = None
             deps = s.lookup_deparray(solv.SOLVABLE_PROVIDES)
-            order = 0
+            color = 'black'
+            style = 'solid'
             for dep in deps:
-                name = str(dep)
-                if name.startswith('pattern-order()'):
-                    # XXX: no function in bindings to do that properly
-                    order = name[name.find('= ') + 2:]
-            print("{} {}".format(order, s.name))
+                p = dep.str()
+                # XXX
+                if (p.startswith('pattern() = ')):
+                    name = p[12:]
+                    logger.info("  %s", name)
+                if (p.startswith('pattern-visible()')):
+                    style = 'bold'
+            if name is None:
+                logger.error("%s has no name", s.name)
+                continue
+
+            node = dot.node(name, name, color=color, style=style)
+
+            for kind in (solv.SOLVABLE_REQUIRES, solv.SOLVABLE_RECOMMENDS):
+                deps = s.lookup_deparray(kind)
+                for dep in deps:
+                    p = dep.str()
+                    if (p.startswith('pattern() = ')):
+                        target = p[12:]
+                        if kind == solv.SOLVABLE_RECOMMENDS:
+                            logger.info("  -> %s", target)
+                            dot.edge(name, target, style="dashed")
+                        else:
+                            logger.info("  => %s", target)
+                            dot.edge(name, target)
+
+        dot.render('patterns.gv')
 
     @cmdln.option("--providers", action="store_true",
                   help="also show other providers")
