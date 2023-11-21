@@ -176,9 +176,7 @@ def _extend_repo(repo, baseurl, target_dir, what, flag):
 
         os.lseek(f.fileno(), 0, os.SEEK_SET)
 
-        repo.add_rpmmd(solv.xfopen_fd(fn if fn.endswith('.gz') else None, f.fileno()), None, 0)
-
-        return True
+        return repo.add_rpmmd(solv.xfopen_fd(fn if not fn.endswith('.xml') else None, f.fileno()), None, 0)
 
     return False
 
