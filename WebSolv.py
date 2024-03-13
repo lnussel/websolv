@@ -10,7 +10,7 @@ from werkzeug.exceptions import HTTPException
 
 from flask import Flask, request, session, url_for, redirect, \
      send_from_directory, jsonify, \
-     render_template, send_file, abort, g, flash, _app_ctx_stack
+     render_template, send_file, abort, g, flash
 #from flask_bootstrap import Bootstrap
 from flask import json
 
